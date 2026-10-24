@@ -87,6 +87,16 @@ interface Strings {
     val expand: String
     val collapse: String
     val locked: String
+    val giveUp: String
+    val giveUpTitle: String
+    val giveUpBody: String
+    val keepPlaying: String
+    val gaveUp: String
+    val draft: String
+    val ring: String
+    val undrafted: String
+    val champion: String
+    val noTitle: String
 }
 
 object He : Strings {
@@ -147,6 +157,8 @@ object He : Strings {
         Category.AGE -> "גיל"
         Category.NUMBER -> "מספר"
         Category.COUNTRY -> "מדינה"
+        Category.DRAFT -> "דראפט"
+        Category.RING -> "טבעת"
     }
     override fun achievementTitle(a: Achievement) = when (a) {
         Achievement.FIRST_WIN -> "סל ראשון"
@@ -182,9 +194,9 @@ object He : Strings {
     override val howToIntro = "יש לך 8 ניחושים למצוא את שחקן ה-NBA הסודי. הקלד שם, בחר מהרשימה, וכל ניחוש מראה כמה קרוב היית."
     override val howToExample = "לדוגמה, ניחשת את השחקן הזה:"
     override val howToGreen = "מדויק"
-    override val howToYellow = "קרוב — דיביז'ן באותו כנס, עמדה חופפת, או הפרש של עד 3 בגיל ובמספר"
+    override val howToYellow = "קרוב — דיביז'ן אחר באותו כנס, או הפרש של עד 3 בגיל, במספר או בשנת הדראפט"
     override val howToGray = "רחוק"
-    override val howToArrows = "החץ בגיל ובמספר מראה אם התשובה גבוהה או נמוכה יותר"
+    override val howToArrows = "החץ בגיל, במספר ובדראפט מראה אם התשובה גבוהה או נמוכה יותר. טבעת: ✓ זכה באליפות, ✗ לא זכה. UND = לא נבחר בדראפט"
     override val howToBoard = "טבלת הדיביז'נים בתחתית מעמעמת קבוצות שכבר לא אפשריות"
     override val howToModes = "ביומי — אותו שחקן לכל החברים. בחופשי — כמה שבא לך."
     override val letsPlay = "יאללה, למשחק"
@@ -205,6 +217,16 @@ object He : Strings {
     override val expand = "הצג טבלת דיביז'נים"
     override val collapse = "הסתר טבלת דיביז'נים"
     override val locked = "נעול"
+    override val giveUp = "ויתור"
+    override val giveUpTitle = "לוותר על המשחק?"
+    override val giveUpBody = "השחקן הסודי ייחשף והמשחק ייחשב כהפסד."
+    override val keepPlaying = "המשך לשחק"
+    override val gaveUp = "ויתרת"
+    override val draft = "דראפט"
+    override val ring = "טבעת"
+    override val undrafted = "UND"
+    override val champion = "אלוף"
+    override val noTitle = "אין"
 }
 
 object En : Strings {
@@ -264,7 +286,9 @@ object En : Strings {
         Category.POSITION -> "Pos"
         Category.AGE -> "Age"
         Category.NUMBER -> "No."
-        Category.COUNTRY -> "Country"
+        Category.COUNTRY -> "Ctry"
+        Category.DRAFT -> "Draft"
+        Category.RING -> "Ring"
     }
     override fun achievementTitle(a: Achievement) = when (a) {
         Achievement.FIRST_WIN -> "First bucket"
@@ -300,9 +324,9 @@ object En : Strings {
     override val howToIntro = "You have 8 guesses to find the secret NBA player. Type a name, pick from the list, and each guess shows how close you are."
     override val howToExample = "Say you guessed this player:"
     override val howToGreen = "Exact"
-    override val howToYellow = "Close — same conference, overlapping position, or within 3 in age and number"
+    override val howToYellow = "Close — same conference, or within 3 in age, number or draft year"
     override val howToGray = "Far"
-    override val howToArrows = "Arrows on age and number show whether the answer is higher or lower"
+    override val howToArrows = "Arrows on age, number and draft show whether the answer is higher or lower. Ring: ✓ won a title, ✗ didn't. UND = undrafted"
     override val howToBoard = "The division board at the bottom dims teams that are ruled out"
     override val howToModes = "Daily — the same player for all your friends. Free — as many as you like."
     override val letsPlay = "Let's play"
@@ -323,6 +347,16 @@ object En : Strings {
     override val expand = "Show division board"
     override val collapse = "Hide division board"
     override val locked = "Locked"
+    override val giveUp = "Give up"
+    override val giveUpTitle = "Give up this game?"
+    override val giveUpBody = "The secret player will be revealed and the game counts as a loss."
+    override val keepPlaying = "Keep playing"
+    override val gaveUp = "You gave up"
+    override val draft = "Draft"
+    override val ring = "Ring"
+    override val undrafted = "UND"
+    override val champion = "Champion"
+    override val noTitle = "None"
 }
 
 fun stringsFor(l: Language): Strings = if (l == Language.HE) He else En

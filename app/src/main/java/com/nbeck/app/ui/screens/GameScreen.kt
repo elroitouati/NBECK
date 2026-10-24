@@ -40,6 +40,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.EmojiEvents
+import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -54,6 +55,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -124,13 +126,28 @@ fun GameScreen(mode: Mode, onBack: () -> Unit, onHome: () -> Unit) {
     LaunchedEffect(ui.finished, ui.gameKey) {
         if (!ui.finished) { showEnd = false; reveal.snapTo(0f); return@LaunchedEffect }
         if (ui.endedLive) {
-            delay(ROW_FLIP_MS.toLong() + 120)
-            app.feedback.play(if (ui.won) Sfx.SWISH else Sfx.BUZZER)
+            if (!ui.gaveUp) delay(ROW_FLIP_MS.toLong() + 120)
+            app.feedback.play(if (ui.won) Sfx.WIN else Sfx.LOSE)
             if (ui.won) app.feedback.heavy()
             reveal.animateTo(1f, tween(700, easing = Motion.easeOut))
             delay(250)
         } else reveal.snapTo(1f)
         showEnd = true
+    }
+
+    // Once a row has flipped, mark it done so it never flips again — opening/closing the keyboard
+    // re-lays out the list and used to replay the whole reveal.
+    LaunchedEffect(ui.animateRow, ui.gameKey) {
+        val row = ui.animateRow
+        if (row >= 0) {
+            delay(ROW_FLIP_MS.toLong() + 100)
+            vm.rowAnimationDone(row)
+        }
+    }
+
+    var confirmGiveUp by remember { mutableStateOf(false) }
+    if (confirmGiveUp) {
+        GiveUpDialog(onConfirm = { confirmGiveUp = false; vm.giveUp() }, onDismiss = { confirmGiveUp = false })
     }
 
     val boardStates = remember(ui.results) { DivisionBoard.states(ui.pairs) }
@@ -141,6 +158,9 @@ fun GameScreen(mode: Mode, onBack: () -> Unit, onHome: () -> Unit) {
                 title = if (mode == Mode.DAILY) s.daily else s.free,
                 onBack = onBack,
             ) {
+                if (!ui.finished && !ui.loading) {
+                    GiveUpButton { keyboard?.hide(); confirmGiveUp = true }
+                }
                 if (ui.finished && !showEnd) {
                     IconBox(onClick = { showEnd = true }, label = s.win) {
                         Icon(Icons.Rounded.EmojiEvents, null, tint = c.accent)
@@ -204,8 +224,17 @@ private fun Header(answer: Player?, reveal: Float, count: Int, finished: Boolean
                 .border(1.dp, c.border, RoundedCornerShape(Space.rCard)),
             contentAlignment = Alignment.BottomCenter,
         ) {
-            PlayerPhoto(answer, Modifier.fillMaxSize().padding(top = 4.dp), reveal = reveal, silhouette = if (c.isDark) Color(0xFF02040A) else Color(0xFF1A1F29))
-            if (!finished) Text("?", style = Type.display.copy(fontSize = 34.sp, lineHeight = 34.sp), color = c.led, modifier = Modifier.align(Alignment.TopEnd).padding(6.dp))
+            // Until the game ends, a generic figure — the real headshot's outline would be a hint.
+            if (finished) {
+                PlayerPhoto(answer, Modifier.fillMaxSize().padding(top = 4.dp).alpha(reveal))
+            } else {
+                androidx.compose.foundation.Image(
+                    androidx.compose.ui.res.painterResource(com.nbeck.app.R.drawable.ic_silhouette), null,
+                    Modifier.fillMaxSize().padding(top = 10.dp),
+                    colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(if (c.isDark) Color(0xFF2A303B) else Color(0xFFC9CDD4)),
+                )
+                Text("?", style = Type.display.copy(fontSize = 44.sp, lineHeight = 44.sp), color = c.led, modifier = Modifier.align(Alignment.Center).padding(bottom = 8.dp))
+            }
         }
         Spacer(Modifier.weight(1f))
         Scoreboard {
@@ -228,7 +257,7 @@ private fun GuessTable(ui: GameUi, modifier: Modifier, onFlip: (Mark) -> Unit) {
             Spacer(Modifier.width(NAME_COL))
             Category.entries.forEach { cat ->
                 Text(
-                    s.category(cat), style = Type.label.copy(fontSize = 11.sp), color = c.text2, maxLines = 1,
+                    s.category(cat), style = Type.label.copy(fontSize = 10.sp), color = c.text2, maxLines = 1,
                     overflow = TextOverflow.Clip, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 )
             }
@@ -246,14 +275,14 @@ private fun GuessTable(ui: GameUi, modifier: Modifier, onFlip: (Mark) -> Unit) {
     }
 }
 
-private val NAME_COL = 60.dp
+private val NAME_COL = 50.dp
 
 @Composable
 private fun GuessRow(p: Player, r: GuessResult, ui: GameUi, animate: Boolean, onFlip: (Mark) -> Unit) {
     val c = nb
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.width(NAME_COL).padding(end = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(Modifier.size(34.dp).clip(CircleShape).background(c.surface2)) {
+            Box(Modifier.size(32.dp).clip(CircleShape).background(c.surface2)) {
                 PlayerPhoto(p, Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
             }
             Text(
@@ -269,7 +298,7 @@ private fun GuessRow(p: Player, r: GuessResult, ui: GameUi, animate: Boolean, on
                 date = ui.date,
                 animate = animate,
                 delayMs = i * Motion.flipStagger,
-                modifier = Modifier.weight(1f).padding(horizontal = 2.dp).aspectRatio(0.9f),
+                modifier = Modifier.weight(1f).padding(horizontal = 1.5.dp).aspectRatio(0.82f),
                 onLanded = onFlip,
             )
         }
@@ -284,7 +313,7 @@ private fun GhostRow(n: Int) {
             LedText("$n", style = Type.led.copy(fontSize = 18.sp, lineHeight = 20.sp), color = c.text3)
         }
         Category.entries.forEach { cat ->
-            BlankTile(cat, Modifier.weight(1f).padding(horizontal = 2.dp).aspectRatio(0.9f))
+            BlankTile(cat, Modifier.weight(1f).padding(horizontal = 1.5.dp).aspectRatio(0.82f))
         }
     }
 }
@@ -406,4 +435,42 @@ private fun SuggestionRow(p: Player, onClick: () -> Unit) {
             }
         }
     }
+}
+
+@Composable
+private fun GiveUpButton(onClick: () -> Unit) {
+    val c = nb
+    val s = LocalStrings.current
+    Row(
+        Modifier.heightIn(min = 40.dp).clip(RoundedCornerShape(Space.rControl)).border(1.dp, c.borderStrong, RoundedCornerShape(Space.rControl))
+            .pressable(onClick = onClick).padding(horizontal = Space.m),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Rounded.Flag, null, tint = c.text2, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(s.giveUp, style = Type.label.copy(fontSize = 14.sp), color = c.text1)
+    }
+    Spacer(Modifier.width(Space.s))
+}
+
+@Composable
+private fun GiveUpDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    val c = nb
+    val s = LocalStrings.current
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = c.surface1,
+        title = { Text(s.giveUpTitle, style = Type.title, color = c.text1) },
+        text = { Text(s.giveUpBody, style = Type.body, color = c.text2) },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = onConfirm) {
+                Text(s.giveUp, style = Type.bodyStrong, color = Color(0xFFE5484D))
+            }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                Text(s.keepPlaying, style = Type.bodyStrong, color = c.text1)
+            }
+        },
+    )
 }

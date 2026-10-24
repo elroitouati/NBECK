@@ -87,7 +87,7 @@ fun EndScreen(ui: GameUi, onClose: () -> Unit, onPlayAgain: () -> Unit, onHome: 
                 Spacer(Modifier.weight(1f))
                 IconBox(onClick = onClose, label = s.close) { Icon(Icons.Rounded.Close, s.close, tint = if (ui.won) Color(0xFFF7F7F7) else c.text1) }
             }
-            Text(if (ui.won) s.win else s.loss, style = Type.h1.copy(fontSize = 40.sp, lineHeight = 46.sp), color = if (ui.won) Color(0xFFF7F7F7) else c.text1)
+            Text(if (ui.won) s.win else if (ui.gaveUp) s.gaveUp else s.loss, style = Type.h1.copy(fontSize = 40.sp, lineHeight = 46.sp), color = if (ui.won) Color(0xFFF7F7F7) else c.text1)
             Text(
                 if (ui.won) s.winSub(ui.guessCount) else s.lossSub,
                 style = Type.title, color = if (ui.won) Color(0xE6F7F7F7) else c.text2,
@@ -159,6 +159,11 @@ fun PlayerCard(p: Player, date: LocalDate) {
             Fact(s.pos, p.position, Modifier.weight(1f))
             Fact(s.age, p.ageOn(date).toString(), Modifier.weight(1f))
             Fact(s.country, listOfNotNull(Countries.flag(p.country), Countries.short(p.country)).joinToString(" "), Modifier.weight(1f))
+        }
+        Spacer(Modifier.height(Space.s))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
+            Fact(s.draft, p.draftYear?.toString() ?: s.undrafted, Modifier.weight(1f))
+            Fact(s.ring, if (p.ring) "✓ ${s.champion}" else "✗ ${s.noTitle}", Modifier.weight(1f))
         }
         Spacer(Modifier.height(Space.s))
         Scoreboard(Modifier.fillMaxWidth()) {

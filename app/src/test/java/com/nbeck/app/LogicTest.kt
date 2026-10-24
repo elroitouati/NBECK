@@ -131,16 +131,14 @@ class ShareTest {
         val a = player(id = "a", team = 2, pos = "F", jersey = "0", country = "USA")
         val g = player(id = "g", team = 2, pos = "F", jersey = "0", country = "USA", born = "1990-01-01")
         val txt = Share.text("יומי", day, listOf(Engine.grade(g, a, day), Engine.grade(a, a, day)), won = true)
-        assertEquals("NBECK יומי 24.10 — 2/8\n🟩🟩🟩⬜🟩🟩\n🟩🟩🟩🟩🟩🟩", txt)
+        assertEquals("NBECK יומי 24.10 — 2/8\n🟩🟩🟩⬜🟩🟩🟩🟩\n🟩🟩🟩🟩🟩🟩🟩🟩", txt)
     }
 }
 
 class EspnPositionTest {
-    @Test fun noDepth_keepsPrimary() = assertEquals("G", EspnSource.position("G", emptyMap()))
-    @Test fun guardAlsoTopSf_isGF() = assertEquals("G-F", EspnSource.position("G", mapOf("G" to 0, "F" to 1)))
-    @Test fun forwardBackupCenter_isFC() = assertEquals("F-C", EspnSource.position("F", mapOf("F" to 0, "C" to 2)))
-    @Test fun deepBench_ignored() = assertEquals("F", EspnSource.position("F", mapOf("F" to 0, "G" to 5)))
-    @Test fun forwardPrefersBetterRank() = assertEquals("F-G", EspnSource.position("F", mapOf("G" to 0, "C" to 2)))
-    @Test fun centerAndForward_isCF() = assertEquals("C-F", EspnSource.position("C", mapOf("F" to 1)))
-    @Test fun espnSubPositionsMapped() = assertEquals("G", EspnSource.position("PG", emptyMap()))
+    @Test fun onlyGfc() {
+        assertEquals("G", EspnSource.position("PG")); assertEquals("G", EspnSource.position("SG"))
+        assertEquals("F", EspnSource.position("SF")); assertEquals("F", EspnSource.position("PF"))
+        assertEquals("C", EspnSource.position("C")); assertEquals("F", EspnSource.position(null))
+    }
 }

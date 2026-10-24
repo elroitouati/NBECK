@@ -23,13 +23,13 @@ import java.util.concurrent.TimeUnit
  * Player data source: ESPN's public site API — free, no key, updated daily during the season.
  *
  *  rosters     https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/{id}/roster
- *  depth chart https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/{id}/depthcharts
  *  stats       https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/statistics/byathlete
+ *  draft year  https://sports.core.api.espn.com/v2/sports/basketball/leagues/nba/athletes/{id}
  *  headshots   https://a.espncdn.com/i/headshots/nba/players/full/{id}.png
  *
- * ESPN rosters only say G/F/C, so combo positions (G-F, F-G, F-C, C-F) come from the depth chart:
- * a player in the top 3 of an adjacent position group gets it as a secondary position.
- * tools/fetch_players.py mirrors this logic to build the bundled assets/players.json.
+ * Draft year never changes, so it is only downloaded for players we have not seen before.
+ * Championship rings come from the bundled assets/rings.json (built by tools/fetch_players.py
+ * from every NBA Finals box score since 2004).
  */
 class EspnSource(
     private val client: OkHttpClient = OkHttpClient.Builder()
@@ -39,13 +39,21 @@ class EspnSource(
 ) {
     private val json = Json { ignoreUnknownKeys = true }
 
-    suspend fun fetchAll(): PlayerBundle = withContext(Dispatchers.IO) {
+    /** [known]: players from the previous data set, reused for draft years. [ringIds]: title winners. */
+    suspend fun fetchAll(known: Map<String, Player>, ringIds: Set<String>): PlayerBundle = withContext(Dispatchers.IO) {
         coroutineScope {
             val gate = Semaphore(6)
             val teams = Teams.all.map { t -> async { gate.withPermit { team(t.espnId) } } }
             val stats = async { gate.withPermit { stats() } }
             val st = stats.await()
-            val players = teams.awaitAll().flatten()
+            val roster = teams.awaitAll().flatten()
+            val drafts = roster.map { p ->
+                async {
+                    val prev = known[p.id]
+                    if (prev != null) prev.draftYear else gate.withPermit { draftYear(p.id) }
+                }
+            }.awaitAll()
+            val players = roster.zip(drafts) { p, draft -> p.copy(draftYear = draft, ring = p.id in ringIds) }
                 .map { p -> st[p.id]?.let { p.copy(ppg = it.ppg, rpg = it.rpg, apg = it.apg, gp = it.gp) } ?: p }
                 .sortedBy { it.id }
             PlayerBundle(source = "ESPN public site API", fetchedAt = Instant.now().toString(), players = players)
@@ -62,8 +70,6 @@ class EspnSource(
 
     private fun team(teamId: Int): List<Player> {
         val roster = get("$SITE/teams/$teamId/roster")
-        val depth = runCatching { get("$SITE/teams/$teamId/depthcharts") }.getOrNull()
-        val ranks = depthRanks(depth)
         return roster.arr("athletes").mapNotNull { el ->
             val a = el.jsonObject
             val id = a.str("id") ?: return@mapNotNull null
@@ -74,7 +80,7 @@ class EspnSource(
                 firstName = a.str("firstName").orEmpty(),
                 lastName = a.str("lastName").orEmpty(),
                 teamId = teamId,
-                position = position(a.obj("position")?.str("abbreviation"), ranks[id].orEmpty()),
+                position = position(a.obj("position")?.str("abbreviation")),
                 birthDate = birth,
                 jersey = a.str("jersey")?.takeIf { it.isNotBlank() },
                 country = country(a.obj("birthPlace")),
@@ -82,6 +88,10 @@ class EspnSource(
             )
         }
     }
+
+    /** Absent "draft" on the athlete = undrafted. */
+    private fun draftYear(id: String): Int? =
+        runCatching { get("$CORE/athletes/$id").obj("draft")?.str("year")?.toIntOrNull() }.getOrNull()
 
     private class Line(val ppg: Double?, val rpg: Double?, val apg: Double?, val gp: Int)
 
@@ -117,36 +127,13 @@ class EspnSource(
     companion object {
         private const val SITE = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba"
         private const val WEB = "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba"
-        private const val DEPTH_TOP = 3
-        private val SLOT_GROUP = mapOf("pg" to "G", "sg" to "G", "sf" to "F", "pf" to "F", "c" to "C")
-        private val ADJ = mapOf("G" to listOf("F"), "F" to listOf("G", "C"), "C" to listOf("F"))
+        private const val CORE = "https://sports.core.api.espn.com/v2/sports/basketball/leagues/nba"
 
-        /** athlete id -> (group -> best depth rank). */
-        fun depthRanks(depth: JsonObject?): Map<String, Map<String, Int>> {
-            val best = HashMap<String, HashMap<String, Int>>()
-            depth?.arr("depthchart")?.forEach { chart ->
-                chart.jsonObject.obj("positions")?.forEach { (slot, v) ->
-                    val g = SLOT_GROUP[slot.lowercase()] ?: return@forEach
-                    v.jsonObject.arr("athletes").forEachIndexed { rank, a ->
-                        val id = a.jsonObject.str("id") ?: return@forEachIndexed
-                        val m = best.getOrPut(id) { HashMap() }
-                        m[g] = minOf(m[g] ?: Int.MAX_VALUE, rank)
-                    }
-                }
-            }
-            return best
-        }
-
-        fun position(abbr: String?, ranks: Map<String, Int>): String {
-            val p = when (abbr?.uppercase()) {
-                "G", "PG", "SG" -> "G"
-                "C" -> "C"
-                else -> "F"
-            }
-            val sec = ADJ.getValue(p)
-                .mapNotNull { g -> ranks[g]?.takeIf { it < DEPTH_TOP }?.let { it to g } }
-                .minWithOrNull(compareBy({ it.first }, { it.second }))
-            return if (sec != null) "$p-${sec.second}" else p
+        /** ESPN sometimes uses PG/SG/SF/PF; the game only knows G, F and C. */
+        fun position(abbr: String?): String = when (abbr?.uppercase()) {
+            "G", "PG", "SG" -> "G"
+            "C" -> "C"
+            else -> "F"
         }
 
         fun country(bp: JsonObject?): String? {

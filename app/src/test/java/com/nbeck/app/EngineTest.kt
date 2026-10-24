@@ -24,16 +24,13 @@ class EngineTest {
     @Test fun division_otherConference_isGray() = assertEquals(Mark.GRAY, Engine.division(player(team = 13), player(team = 2)).mark)
     @Test fun division_west_sameDivision_isGreen() = assertEquals(Mark.GREEN, Engine.division(player(team = 9), player(team = 13)).mark)
 
-    // ---- Position: exact green, partial overlap yellow, none gray
-    @Test fun position_exact_isGreen() = assertEquals(Mark.GREEN, Engine.position("G-F", "G-F").mark)
-    @Test fun position_exactSingle_isGreen() = assertEquals(Mark.GREEN, Engine.position("C", "C").mark)
-    @Test fun position_GF_vs_F_isYellow() = assertEquals(Mark.YELLOW, Engine.position("G-F", "F").mark)
-    @Test fun position_GF_vs_FG_isYellow() = assertEquals(Mark.YELLOW, Engine.position("G-F", "F-G").mark)
-    @Test fun position_FC_vs_CF_isYellow() = assertEquals(Mark.YELLOW, Engine.position("F-C", "C-F").mark)
-    @Test fun position_C_vs_FC_isYellow() = assertEquals(Mark.YELLOW, Engine.position("C", "F-C").mark)
-    @Test fun position_G_vs_C_isGray() = assertEquals(Mark.GRAY, Engine.position("G", "C").mark)
-    @Test fun position_G_vs_FC_isGray() = assertEquals(Mark.GRAY, Engine.position("G", "F-C").mark)
-    @Test fun position_GF_vs_C_isGray() = assertEquals(Mark.GRAY, Engine.position("G-F", "C").mark)
+    // ---- Position: only G, F, C — same green, different gray
+    @Test fun position_same_isGreen() = assertEquals(Mark.GREEN, Engine.position("C", "C").mark)
+    @Test fun position_different_isGray() = assertEquals(Mark.GRAY, Engine.position("G", "F").mark)
+    @Test fun position_neverYellow() {
+        for (g in listOf("G", "F", "C")) for (a in listOf("G", "F", "C"))
+            assertTrue(Engine.position(g, a).mark != Mark.YELLOW)
+    }
 
     // ---- Age: equal green, within 3 yellow, more gray; arrow toward answer when not green
     @Test fun age_equal_isGreen_noArrow() {
@@ -86,14 +83,35 @@ class EngineTest {
     @Test fun country_other_isGray() = assertEquals(Mark.GRAY, Engine.country("Canada", "USA").mark)
     @Test fun country_missing_isGray() = assertEquals(Mark.GRAY, Engine.country(null, null).mark)
 
+    // ---- Draft year: equal green, within 3 yellow, more gray, arrows; UND only matches UND
+    @Test fun draft_same_isGreen() = assertEquals(Mark.GREEN, Engine.draft(2020, 2020).mark)
+    @Test fun draft_within3_isYellow_up() {
+        val c = Engine.draft(2018, 2020); assertEquals(Mark.YELLOW, c.mark); assertEquals(Arrow.UP, c.arrow)
+    }
+    @Test fun draft_far_isGray_down() {
+        val c = Engine.draft(2020, 2003); assertEquals(Mark.GRAY, c.mark); assertEquals(Arrow.DOWN, c.arrow)
+    }
+    @Test fun draft_bothUndrafted_isGreen() = assertEquals(Mark.GREEN, Engine.draft(null, null).mark)
+    @Test fun draft_oneUndrafted_isGray_noArrow() {
+        val c = Engine.draft(null, 2020); assertEquals(Mark.GRAY, c.mark); assertEquals(Arrow.NONE, c.arrow)
+        assertEquals(Mark.GRAY, Engine.draft(2020, null).mark)
+    }
+
+    // ---- Ring: same status green, different gray
+    @Test fun ring_bothChampions_isGreen() = assertEquals(Mark.GREEN, Engine.ring(true, true).mark)
+    @Test fun ring_bothWithout_isGreen() = assertEquals(Mark.GREEN, Engine.ring(false, false).mark)
+    @Test fun ring_different_isGray() {
+        assertEquals(Mark.GRAY, Engine.ring(true, false).mark); assertEquals(Mark.GRAY, Engine.ring(false, true).mark)
+    }
+
     // ---- Whole row
     @Test fun samePlayer_allGreen() {
-        val p = player(team = 13, pos = "F-C", jersey = "3", country = "Slovenia")
+        val p = player(team = 13, pos = "C", jersey = "3", country = "Slovenia").copy(draftYear = 2018, ring = true)
         assertTrue(Engine.grade(p, p, day).isWin)
     }
     @Test fun differentPlayer_notWin() {
         val r = Engine.grade(player(team = 13), player(id = "2", team = 2), day)
         assertFalse(r.isWin)
-        assertEquals(6, r.cells.size)
+        assertEquals(8, r.cells.size)
     }
 }

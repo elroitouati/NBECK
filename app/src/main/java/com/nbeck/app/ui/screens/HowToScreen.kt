@@ -53,12 +53,14 @@ import com.nbeck.app.ui.theme.nb
 import java.time.LocalDate
 
 private val demoCells = listOf(
-    Cell(Mark.GRAY), Cell(Mark.YELLOW), Cell(Mark.YELLOW), Cell(Mark.GRAY, Arrow.DOWN), Cell(Mark.YELLOW, Arrow.UP), Cell(Mark.GREEN),
+    Cell(Mark.GRAY), Cell(Mark.YELLOW), Cell(Mark.GREEN), Cell(Mark.GRAY, Arrow.DOWN), Cell(Mark.YELLOW, Arrow.UP), Cell(Mark.GREEN),
+    Cell(Mark.YELLOW, Arrow.DOWN), Cell(Mark.GRAY),
 )
 
 private val demoPlayer = Player(
     id = "demo", name = "Jayson Tatum", firstName = "Jayson", lastName = "Tatum", teamId = 2, position = "F",
     birthDate = "1998-03-03", jersey = "0", country = "USA", headshot = "https://a.espncdn.com/i/headshots/nba/players/full/4065648.png",
+    draftYear = 2017, ring = true,
 )
 
 @Composable
@@ -82,7 +84,7 @@ fun HowToScreen(onBack: () -> Unit, onPlay: () -> Unit) {
                     Spacer(Modifier.height(Space.m))
                     Row(Modifier.fillMaxWidth()) {
                         Category.entries.forEach { cat ->
-                            Text(s.category(cat), style = Type.label.copy(fontSize = 11.sp), color = c.text2, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, maxLines = 1)
+                            Text(s.category(cat), style = Type.label.copy(fontSize = 10.sp), color = c.text2, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, maxLines = 1)
                         }
                     }
                     Spacer(Modifier.height(4.dp))
@@ -90,7 +92,7 @@ fun HowToScreen(onBack: () -> Unit, onPlay: () -> Unit) {
                         Category.entries.forEachIndexed { i, cat ->
                             FlipTile(
                                 cat, demoCells[i], example, LocalDate.now(), animate = true, delayMs = 300 + i * Motion.flipStagger,
-                                modifier = Modifier.weight(1f).padding(horizontal = 2.dp).aspectRatio(0.9f),
+                                modifier = Modifier.weight(1f).padding(horizontal = 1.5.dp).aspectRatio(0.82f),
                                 onLanded = { app.feedback.play(Sfx.FLIP) },
                             )
                         }

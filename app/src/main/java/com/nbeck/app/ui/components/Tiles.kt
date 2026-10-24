@@ -135,32 +135,56 @@ fun TileFace(category: Category, cell: Cell, guess: Player, date: LocalDate, mod
             ),
         contentAlignment = Alignment.Center,
     ) {
-        BoxWithConstraints(Modifier.fillMaxSize().padding(2.dp), contentAlignment = Alignment.Center) {
+        // Content starts below the corner mark so the two never overlap on narrow tiles.
+        val badgeTop = category != Category.NUMBER && category != Category.RING
+        BoxWithConstraints(
+            Modifier.fillMaxSize().padding(start = 2.dp, end = 2.dp, top = if (badgeTop) 9.dp else 2.dp, bottom = 2.dp),
+            contentAlignment = Alignment.Center,
+        ) {
             val small = maxWidth < 46.dp
             val main = Type.tile.copy(fontSize = if (small) 13.sp else 15.sp, textDirection = TextDirection.Ltr)
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 when (category) {
                     Category.TEAM -> {
-                        AsyncImage(team.logoUrl, contentDescription = null, modifier = Modifier.size(if (small) 18.dp else 22.dp))
+                        AsyncImage(team.logoUrl, contentDescription = null, modifier = Modifier.size(if (small) 17.dp else 22.dp))
                         Text(team.abbr, style = main.copy(fontSize = 11.sp), color = fg, maxLines = 1)
                     }
                     Category.DIVISION -> {
-                        Text(team.division.short, style = main, color = fg, maxLines = 1)
+                        Text(team.division.short, style = main.copy(fontSize = if (small) 12.sp else 15.sp), color = fg, maxLines = 1)
                         Text(if (team.conference.name == "EAST") "EAST" else "WEST", style = Type.label.copy(fontSize = 9.sp, lineHeight = 10.sp), color = fg.copy(alpha = 0.75f))
                     }
                     Category.POSITION -> Text(guess.position, style = main, color = fg, maxLines = 1)
                     Category.AGE -> ValueWithArrow(guess.ageOn(date).toString(), cell.arrow, fg, main)
                     Category.NUMBER -> Box(Modifier.offset(y = 4.dp)) { ValueWithArrow(guess.jersey ?: "—", cell.arrow, fg, main) }
+                    Category.DRAFT -> {
+                        // Year on its own line so "2020" fits a narrow tile; arrow underneath.
+                        Text(guess.draftYear?.toString() ?: "UND", style = main.copy(fontSize = if (small) 12.sp else 14.sp), color = fg, maxLines = 1)
+                        if (cell.arrow != Arrow.NONE) {
+                            Icon(
+                                if (cell.arrow == Arrow.UP) Icons.Rounded.ArrowUpward else Icons.Rounded.ArrowDownward,
+                                contentDescription = if (cell.arrow == Arrow.UP) "later" else "earlier",
+                                tint = fg, modifier = Modifier.size(12.dp),
+                            )
+                        }
+                    }
+                    Category.RING -> Icon(
+                        if (guess.ring) Icons.Rounded.Check else Icons.Rounded.Close,
+                        contentDescription = if (guess.ring) "champion" else "no title",
+                        tint = fg, modifier = Modifier.size(if (small) 24.dp else 28.dp),
+                    )
                     Category.COUNTRY -> {
                         val flag = Countries.flag(guess.country)
-                        if (flag != null) Text(flag, fontSize = if (small) 15.sp else 18.sp, lineHeight = 20.sp)
+                        if (flag != null) Text(flag, fontSize = if (small) 14.sp else 18.sp, lineHeight = if (small) 17.sp else 20.sp)
                         Text(Countries.short(guess.country), style = main.copy(fontSize = 11.sp), color = fg, maxLines = 1)
                     }
                 }
             }
         }
-        val badgeAt = if (category == Category.NUMBER) Alignment.BottomEnd else Alignment.TopEnd
-        MarkBadge(cell.mark, Modifier.align(badgeAt).padding(3.dp), solid = teamGreen)
+        // The ring tile's content already is a ✓/✗, so a second mark badge would only confuse.
+        if (category != Category.RING) {
+            val badgeAt = if (category == Category.NUMBER) Alignment.BottomEnd else Alignment.TopEnd
+            MarkBadge(cell.mark, Modifier.align(badgeAt).padding(2.dp), size = 10.dp, solid = teamGreen)
+        }
     }
 }
 

@@ -31,6 +31,7 @@ class PlayerRepository(private val context: Context, private val source: EspnSou
         if (_players.value.isNotEmpty()) return _players.value
         val bundle = withContext(Dispatchers.IO) {
             runCatching { json.decodeFromString<PlayerBundle>(cacheFile.readText()) }.getOrNull()
+                ?.takeIf { it.schema >= PLAYER_SCHEMA }
                 ?: json.decodeFromString<PlayerBundle>(context.assets.open("players.json").bufferedReader().use { it.readText() })
         }
         publish(bundle)
@@ -43,10 +44,11 @@ class PlayerRepository(private val context: Context, private val source: EspnSou
     suspend fun refresh(force: Boolean = false): Boolean {
         load()
         if (!force && !isStale) return false
-        val bundle = runCatching { source.fetchAll() }.getOrNull() ?: return false
+        val known = _players.value.associateBy { it.id }
+        val bundle = runCatching { source.fetchAll(known, ringIds()) }.getOrNull() ?: return false
         val valid = bundle.players.filter { Teams.find(it.teamId) != null }
         if (valid.size < 300) return false // partial outage — keep what we have
-        val clean = bundle.copy(players = valid)
+        val clean = bundle.copy(schema = PLAYER_SCHEMA, players = valid)
         withContext(Dispatchers.IO) {
             val tmp = File(context.filesDir, "players.json.tmp")
             tmp.writeText(json.encodeToString(PlayerBundle.serializer(), clean))
@@ -60,6 +62,14 @@ class PlayerRepository(private val context: Context, private val source: EspnSou
         fetchedAt = runCatching { Instant.parse(bundle.fetchedAt) }.getOrDefault(Instant.EPOCH)
         _players.value = bundle.players.filter { Teams.find(it.teamId) != null }
     }
+
+    @kotlinx.serialization.Serializable
+    private class Rings(val champions: Map<String, List<String>> = emptyMap())
+
+    private fun ringIds(): Set<String> = runCatching {
+        json.decodeFromString<Rings>(context.assets.open("rings.json").bufferedReader().use { it.readText() })
+            .champions.values.flatten().toSet()
+    }.getOrDefault(emptySet())
 
     fun byId(id: String): Player? = _players.value.firstOrNull { it.id == id }
 }

@@ -14,9 +14,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 
-enum class Sfx { FLIP, SWISH, BUZZER, CROWD }
+enum class Sfx { FLIP, WIN, LOSE, CROWD }
 
-/** Sounds (swish on win, buzzer on loss, tick per tile flip, crowd on achievement) and haptics. */
+/** Sounds (organ fanfare on win, trombone slide on loss, tick per tile flip, crowd on achievement) and haptics. */
 class Feedback(context: Context, prefs: Prefs, scope: CoroutineScope) {
     private val settings = prefs.settings.stateIn(scope, SharingStarted.Eagerly, Settings())
 
@@ -31,8 +31,8 @@ class Feedback(context: Context, prefs: Prefs, scope: CoroutineScope) {
 
     private val ids = mapOf(
         Sfx.FLIP to pool.load(context, R.raw.snd_flip, 1),
-        Sfx.SWISH to pool.load(context, R.raw.snd_swish, 1),
-        Sfx.BUZZER to pool.load(context, R.raw.snd_buzzer, 1),
+        Sfx.WIN to pool.load(context, R.raw.snd_win, 1),
+        Sfx.LOSE to pool.load(context, R.raw.snd_lose, 1),
         Sfx.CROWD to pool.load(context, R.raw.snd_crowd, 1),
     )
 

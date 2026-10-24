@@ -15,7 +15,7 @@ enum class Arrow { UP, DOWN, NONE }
 
 data class Cell(val mark: Mark, val arrow: Arrow = Arrow.NONE)
 
-enum class Category { TEAM, DIVISION, POSITION, AGE, NUMBER, COUNTRY }
+enum class Category { TEAM, DIVISION, POSITION, AGE, NUMBER, COUNTRY, DRAFT, RING }
 
 data class GuessResult(
     val team: Cell,
@@ -24,8 +24,10 @@ data class GuessResult(
     val age: Cell,
     val number: Cell,
     val country: Cell,
+    val draft: Cell,
+    val ring: Cell,
 ) {
-    val cells get() = listOf(team, division, position, age, number, country)
+    val cells get() = listOf(team, division, position, age, number, country, draft, ring)
     val isWin get() = cells.all { it.mark == Mark.GREEN }
 }
 
@@ -39,6 +41,8 @@ object Engine {
         age = numeric(guess.ageOn(date), answer.ageOn(date)),
         number = jersey(guess.jersey, answer.jersey),
         country = country(guess.country, answer.country),
+        draft = draft(guess.draftYear, answer.draftYear),
+        ring = ring(guess.ring, answer.ring),
     )
 
     fun team(guess: Player, answer: Player) =
@@ -56,14 +60,8 @@ object Engine {
         )
     }
 
-    /** Exact string = green; any shared letter (G/F/C) = yellow; none = gray. */
-    fun position(guess: String, answer: String): Cell {
-        if (guess == answer) return Cell(Mark.GREEN)
-        val shared = letters(guess) intersect letters(answer)
-        return Cell(if (shared.isNotEmpty()) Mark.YELLOW else Mark.GRAY)
-    }
-
-    private fun letters(pos: String) = pos.split('-').map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+    /** Positions are only G, F or C: same = green, different = gray. */
+    fun position(guess: String, answer: String) = Cell(if (guess == answer) Mark.GREEN else Mark.GRAY)
 
     /** Equal = green; |diff| <= 3 = yellow; else gray. Arrow points toward the answer when not green. */
     fun numeric(guess: Int, answer: Int): Cell {
@@ -84,4 +82,14 @@ object Engine {
 
     fun country(guess: String?, answer: String?) =
         Cell(if (guess != null && guess == answer) Mark.GREEN else Mark.GRAY)
+
+    /** Draft year like age: equal green, within 3 yellow, arrows. Undrafted only matches undrafted. */
+    fun draft(guess: Int?, answer: Int?): Cell = when {
+        guess == null && answer == null -> Cell(Mark.GREEN)
+        guess == null || answer == null -> Cell(Mark.GRAY)
+        else -> numeric(guess, answer)
+    }
+
+    /** Won a title or not: same = green, different = gray. */
+    fun ring(guess: Boolean, answer: Boolean) = Cell(if (guess == answer) Mark.GREEN else Mark.GRAY)
 }

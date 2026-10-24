@@ -38,6 +38,7 @@ data class GameUi(
     val suggestions: List<Player> = emptyList(),
     /** True when this game ended during this screen session (play end effects); false when restored. */
     val endedLive: Boolean = false,
+    val gaveUp: Boolean = false,
     /** Bumped on every new game so one-shot effects re-run. */
     val gameKey: Int = 0,
 ) {
@@ -95,6 +96,7 @@ class GameViewModel(app: Application, private val mode: Mode) : AndroidViewModel
                 results = guesses.map { g -> Engine.grade(g, answer, date) },
                 finished = game.finished,
                 won = game.won,
+                gaveUp = game.gaveUp,
                 gameKey = it.gameKey + 1,
             )
         }
@@ -103,7 +105,7 @@ class GameViewModel(app: Application, private val mode: Mode) : AndroidViewModel
     fun onQuery(q: String) {
         val s = _ui.value
         if (s.finished) return
-        _ui.update { it.copy(query = q, suggestions = search.search(q, exclude = s.guesses.map { g -> g.id }.toSet())) }
+        _ui.update { it.copy(query = q, suggestions = search.search(q, exclude = s.guesses.map { g -> g.id }.toSet(), limit = 40)) }
     }
 
     fun guess(p: Player) {
@@ -124,9 +126,24 @@ class GameViewModel(app: Application, private val mode: Mode) : AndroidViewModel
         viewModelScope.launch { persist(p, guesses, finished, won, results) }
     }
 
-    private suspend fun persist(p: Player, guesses: List<Player>, finished: Boolean, won: Boolean, results: List<GuessResult>) {
+    /** The just-guessed row finished flipping: never flip it again (keyboard, scroll, recomposition). */
+    fun rowAnimationDone(row: Int) {
+        _ui.update { if (it.animateRow == row) it.copy(animateRow = -1) else it }
+    }
+
+    /** Give up: reveal the answer, counts as a loss. */
+    fun giveUp() {
+        val s = _ui.value
+        if (s.finished || s.answer == null) return
+        _ui.update { it.copy(finished = true, won = false, gaveUp = true, endedLive = true, animateRow = -1, query = "", suggestions = emptyList()) }
+        saved = saved?.copy(gaveUp = true)
+        viewModelScope.launch { persist(null, s.guesses, finished = true, won = false, results = s.results) }
+    }
+
+    private suspend fun persist(p: Player?, guesses: List<Player>, finished: Boolean, won: Boolean, results: List<GuessResult>) {
         val g = (saved ?: return).copy(guessIds = guesses.map { it.id }, finished = finished, won = won)
-        var ach = Achievements.afterGuess(prefs.achievements.first(), p.teamId, p.country)
+        var ach = prefs.achievements.first()
+        if (p != null) ach = Achievements.afterGuess(ach, p.teamId, p.country)
         var stats = prefs.stats.first()
         var game: FinishedGame? = null
         val record = finished && !g.recorded

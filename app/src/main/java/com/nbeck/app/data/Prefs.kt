@@ -36,6 +36,7 @@ data class SavedGame(
     val guessIds: List<String> = emptyList(),
     val finished: Boolean = false,
     val won: Boolean = false,
+    val gaveUp: Boolean = false,
     /** Stats already recorded for this game (guards against double counting). */
     val recorded: Boolean = false,
 )
