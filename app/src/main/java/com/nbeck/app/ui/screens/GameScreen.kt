@@ -11,6 +11,9 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -54,7 +57,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -98,6 +100,7 @@ import kotlinx.coroutines.launch
 /** Total time for one row to finish flipping. */
 private val ROW_FLIP_MS = Motion.flipStagger * 5 + Motion.flip
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun GameScreen(mode: Mode, onBack: () -> Unit, onHome: () -> Unit) {
     val context = LocalContext.current
@@ -108,7 +111,11 @@ fun GameScreen(mode: Mode, onBack: () -> Unit, onHome: () -> Unit) {
     val c = nb
 
     var boardExpanded by rememberSaveable { mutableStateOf(true) }
-    var searchFocused by remember { mutableStateOf(false) }
+    // Collapse the board only while the keyboard is actually on screen (the field can keep focus
+    // after the keyboard is dismissed with Back, which used to lock the board closed).
+    val imeVisible = WindowInsets.isImeVisible
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     var showEnd by remember { mutableStateOf(false) }
     val reveal = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
@@ -148,8 +155,16 @@ fun GameScreen(mode: Mode, onBack: () -> Unit, onHome: () -> Unit) {
             })
             DivisionBoardView(
                 states = boardStates,
-                expanded = boardExpanded && !searchFocused,
-                onToggle = { boardExpanded = !boardExpanded },
+                expanded = boardExpanded && !imeVisible,
+                onToggle = {
+                    if (imeVisible) {
+                        keyboard?.hide()
+                        focusManager.clearFocus()
+                        boardExpanded = true
+                    } else {
+                        boardExpanded = !boardExpanded
+                    }
+                },
             )
             if (!ui.finished) {
                 SearchBar(
@@ -157,7 +172,6 @@ fun GameScreen(mode: Mode, onBack: () -> Unit, onHome: () -> Unit) {
                     suggestions = ui.suggestions,
                     onQuery = vm::onQuery,
                     onPick = vm::guess,
-                    onFocus = { searchFocused = it },
                 )
             }
         }
@@ -306,7 +320,6 @@ private fun SearchBar(
     suggestions: List<Player>,
     onQuery: (String) -> Unit,
     onPick: (Player) -> Unit,
-    onFocus: (Boolean) -> Unit,
 ) {
     val c = nb
     val s = LocalStrings.current
@@ -360,7 +373,7 @@ private fun SearchBar(
                     cursorBrush = SolidColor(c.accent),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, autoCorrectEnabled = false, imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = { if (suggestions.size == 1) onPick(suggestions.first()) }),
-                    modifier = Modifier.fillMaxWidth().focusRequester(focus).onFocusChanged { onFocus(it.isFocused) },
+                    modifier = Modifier.fillMaxWidth().focusRequester(focus),
                 )
             }
             if (query.isNotEmpty()) {
