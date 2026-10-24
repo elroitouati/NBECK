@@ -1,0 +1,162 @@
+package com.nbeck.app.ui.screens
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.nbeck.app.NbeckApp
+import com.nbeck.app.data.Player
+import com.nbeck.app.data.SavedGame
+import com.nbeck.app.game.Achievements
+import com.nbeck.app.game.Daily
+import com.nbeck.app.game.Engine
+import com.nbeck.app.game.FinishedGame
+import com.nbeck.app.game.GuessResult
+import com.nbeck.app.game.MAX_GUESSES
+import com.nbeck.app.game.Mode
+import com.nbeck.app.game.PlayerSearch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+
+data class GameUi(
+    val loading: Boolean = true,
+    val mode: Mode = Mode.DAILY,
+    val date: LocalDate = LocalDate.now(),
+    val answer: Player? = null,
+    val guesses: List<Player> = emptyList(),
+    val results: List<GuessResult> = emptyList(),
+    val finished: Boolean = false,
+    val won: Boolean = false,
+    /** Index of the row that should flip in (the one just guessed); -1 = render all static. */
+    val animateRow: Int = -1,
+    val query: String = "",
+    val suggestions: List<Player> = emptyList(),
+    /** True when this game ended during this screen session (play end effects); false when restored. */
+    val endedLive: Boolean = false,
+    /** Bumped on every new game so one-shot effects re-run. */
+    val gameKey: Int = 0,
+) {
+    val guessCount get() = guesses.size
+    val pairs get() = guesses.zip(results)
+}
+
+class GameViewModel(app: Application, private val mode: Mode) : AndroidViewModel(app) {
+    private val nb = app as NbeckApp
+    private val repo = nb.players
+    private val prefs = nb.prefs
+
+    private val _ui = MutableStateFlow(GameUi(mode = mode))
+    val ui: StateFlow<GameUi> = _ui
+
+    private var players: List<Player> = emptyList()
+    private var search = PlayerSearch(emptyList())
+    private var saved: SavedGame? = null
+
+    init {
+        viewModelScope.launch {
+            players = repo.load()
+            search = PlayerSearch(players)
+            start(prefs.game(mode).first())
+        }
+    }
+
+    private suspend fun start(prev: SavedGame?) {
+        val today = LocalDate.now()
+        val byId = players.associateBy { it.id }
+        val restored = when (mode) {
+            Mode.DAILY -> prev?.takeIf { it.date == today.toString() && byId.containsKey(it.answerId) }
+            Mode.FREE -> prev?.takeIf { !it.finished && byId.containsKey(it.answerId) }
+        }
+        val game = restored ?: SavedGame(
+            mode = mode,
+            date = today.toString(),
+            answerId = when (mode) {
+                Mode.DAILY -> Daily.pick(players, today).id
+                Mode.FREE -> Daily.randomPick(players, setOfNotNull(prev?.answerId)).id
+            },
+        )
+        if (restored == null) prefs.saveGame(game)
+        saved = game
+        val date = LocalDate.parse(game.date)
+        val answer = byId.getValue(game.answerId)
+        val guesses = game.guessIds.mapNotNull { byId[it] }
+        _ui.update {
+            GameUi(
+                loading = false,
+                mode = mode,
+                date = date,
+                answer = answer,
+                guesses = guesses,
+                results = guesses.map { g -> Engine.grade(g, answer, date) },
+                finished = game.finished,
+                won = game.won,
+                gameKey = it.gameKey + 1,
+            )
+        }
+    }
+
+    fun onQuery(q: String) {
+        val s = _ui.value
+        if (s.finished) return
+        _ui.update { it.copy(query = q, suggestions = search.search(q, exclude = s.guesses.map { g -> g.id }.toSet())) }
+    }
+
+    fun guess(p: Player) {
+        val s = _ui.value
+        val answer = s.answer ?: return
+        if (s.finished || s.guesses.any { it.id == p.id }) return
+        val result = Engine.grade(p, answer, s.date)
+        val guesses = s.guesses + p
+        val results = s.results + result
+        val won = p.id == answer.id
+        val finished = won || guesses.size >= MAX_GUESSES
+        _ui.update {
+            it.copy(
+                guesses = guesses, results = results, finished = finished, won = won,
+                animateRow = guesses.lastIndex, query = "", suggestions = emptyList(), endedLive = finished,
+            )
+        }
+        viewModelScope.launch { persist(p, guesses, finished, won, results) }
+    }
+
+    private suspend fun persist(p: Player, guesses: List<Player>, finished: Boolean, won: Boolean, results: List<GuessResult>) {
+        val g = (saved ?: return).copy(guessIds = guesses.map { it.id }, finished = finished, won = won)
+        var ach = Achievements.afterGuess(prefs.achievements.first(), p.teamId, p.country)
+        var stats = prefs.stats.first()
+        var game: FinishedGame? = null
+        val record = finished && !g.recorded
+        if (record) {
+            val today = LocalDate.parse(g.date)
+            stats = stats.with(mode, stats[mode].record(mode, won, guesses.size, today))
+            prefs.saveStats(stats)
+            game = FinishedGame(mode, won, results)
+        }
+        val (newAch, earned) = Achievements.evaluate(ach, stats, game, LocalDate.now())
+        ach = newAch
+        prefs.saveAchievements(ach)
+        val done = g.copy(recorded = g.recorded || record)
+        saved = done
+        prefs.saveGame(done)
+        if (earned.isNotEmpty()) nb.achievementEvents.emit(earned)
+    }
+
+    /** Free mode: a fresh random player. */
+    fun newGame() {
+        if (mode != Mode.FREE) return
+        viewModelScope.launch {
+            val prev = saved
+            saved = null
+            start(prev?.copy(finished = true))
+        }
+    }
+
+    class Factory(private val app: Application, private val mode: Mode) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T = GameViewModel(app, mode) as T
+    }
+}
