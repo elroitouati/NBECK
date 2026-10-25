@@ -26,6 +26,30 @@ FIRST_FINALS = 2004
 # ESPN team id -> is Eastern Conference
 EAST = {str(t): t in (2, 17, 18, 20, 28, 4, 5, 8, 11, 15, 1, 30, 14, 19, 27) for t in ESPN_TEAM_IDS}  # oldest active players debuted 2003
 
+# ESPN has no birthplace for these players; filled in by hand with the country they represent.
+# Only used when ESPN's own value is missing. The app keeps these on refresh (EspnSource reuses the
+# previous country when ESPN's is empty).
+COUNTRY_OVERRIDES = {
+    "4711294": "USA",        # Matas Buzelis
+    "4870562": "USA",        # Dominick Barlow
+    "4871145": "Australia",  # Josh Giddey
+    "4997528": "Serbia",     # Nikola Jovic
+    "4997538": "Croatia",    # Karlo Matkovic
+    "5104155": "France",     # Bilal Coulibaly
+    "5157587": "Australia",  # Rocco Zikarsky
+    "5159925": "Serbia",     # Nikola Topic
+    "5160992": "France",     # Alex Sarr
+    "5175647": "Spain",      # Hugo Gonzalez
+    "5211175": "France",     # Zaccharie Risacher
+    "5211176": "France",     # Tidjane Salaun
+    "5214637": "France",     # Noah Penda
+    "5214989": "Serbia",     # Bogoljub Markovic
+    "5217746": "China",      # Yang Hansen
+    "5242496": "France",     # Noa Essengue
+    "5242502": "Israel",     # Ben Saraf
+    "5279133": "France",     # Joan Beringer
+}
+
 def get(url):
     err = None
     for _ in range(3):
@@ -64,7 +88,7 @@ def team_players(tid):
             "position": position(a.get("position", {}).get("abbreviation")),
             "birthDate": dob,
             "jersey": jersey if jersey not in (None, "") else None,
-            "country": country_of(a.get("birthPlace")),
+            "country": country_of(a.get("birthPlace")) or COUNTRY_OVERRIDES.get(str(a["id"])),
             "headshot": (a.get("headshot") or {}).get("href"),
         })
     return out
@@ -157,7 +181,7 @@ def main():
         sys.exit(f"only {len(players)} players — refusing to write")
     now = datetime.datetime.now(timezone.utc).isoformat(timespec="seconds")
     with open(os.path.join(ASSETS, "players.json"), "w", encoding="utf-8") as fh:
-        json.dump({"schema": 2, "source": "ESPN public API", "fetchedAt": now, "players": players}, fh, ensure_ascii=False, separators=(",", ":"))
+        json.dump({"schema": 3, "source": "ESPN public API", "fetchedAt": now, "players": players}, fh, ensure_ascii=False, separators=(",", ":"))
     with open(os.path.join(ASSETS, "rings.json"), "w", encoding="utf-8") as fh:
         json.dump({"fetchedAt": now, "champions": rings}, fh, separators=(",", ":"))
     from collections import Counter

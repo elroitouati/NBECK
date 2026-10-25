@@ -29,12 +29,8 @@ interface Strings {
     val loss: String
     val lossSub: String
     fun winSub(n: Int): String
-    val share: String
-    val shareWhatsapp: String
     val playAgain: String
     val backHome: String
-    val shareModeDaily: String
-    val shareModeFree: String
     val played: String
     val winPct: String
     val streak: String
@@ -122,12 +118,8 @@ object He : Strings {
     override val loss = "נגמר הזמן"
     override val lossSub = "השחקן הסודי היה"
     override fun winSub(n: Int) = if (n == 1) "בניחוש הראשון!" else "ב-$n ניחושים"
-    override val share = "שתף תוצאה"
-    override val shareWhatsapp = "שתף בוואטסאפ"
     override val playAgain = "שחק שוב"
     override val backHome = "חזרה למסך הבית"
-    override val shareModeDaily = "יומי"
-    override val shareModeFree = "חופשי"
     override val played = "משחקים"
     override val winPct = "% ניצחונות"
     override val streak = "רצף נוכחי"
@@ -252,12 +244,8 @@ object En : Strings {
     override val loss = "Out of time"
     override val lossSub = "The secret player was"
     override fun winSub(n: Int) = if (n == 1) "First guess!" else "In $n guesses"
-    override val share = "Share result"
-    override val shareWhatsapp = "Share on WhatsApp"
     override val playAgain = "Play again"
     override val backHome = "Back to home"
-    override val shareModeDaily = "Daily"
-    override val shareModeFree = "Free"
     override val played = "Played"
     override val winPct = "Win %"
     override val streak = "Current streak"

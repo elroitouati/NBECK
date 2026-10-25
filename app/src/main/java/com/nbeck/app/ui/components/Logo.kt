@@ -3,6 +3,9 @@ package com.nbeck.app.ui.components
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,15 +55,46 @@ fun BallA(size: Dp, modifier: Modifier = Modifier, ball: Color = nb.accent, seam
     }
 }
 
-/** DNBA wordmark: "DNB" set in the display face, the A is a basketball. Always LTR. */
+/**
+ * DNBA wordmark: the D is the basketball "D" from the launcher icon, lit by an orange glow, followed
+ * by "NBA" in the display face with a brushed-metal fill. Always LTR.
+ */
 @Composable
-fun Wordmark(modifier: Modifier = Modifier, height: Dp = 64.dp) {
+fun Wordmark(modifier: Modifier = Modifier, height: Dp = 96.dp) {
     val c = nb
-    val fs = height.value.sp
+    val fs = (height.value * 0.98f).sp
+    val metal = if (c.isDark) {
+        androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFFFFFFFF), Color(0xFFE3E6EA), Color(0xFFA9B0BA)))
+    } else {
+        androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF3A404B), Color(0xFF14181D)))
+    }
     androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr) {
-        Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(height * 0.06f)) {
-            Text("DNB", style = Type.display.copy(fontSize = fs, lineHeight = fs, textDirection = TextDirection.Ltr), color = c.text1)
-            BallA(height * 0.76f)
+        Row(modifier, verticalAlignment = Alignment.Bottom) {
+            androidx.compose.foundation.layout.Box(Modifier.size(height), contentAlignment = Alignment.Center) {
+                // Glow behind the ball; requiredSize lets it spill past the layout bounds.
+                Canvas(Modifier.requiredSize(height * 1.8f)) {
+                    drawCircle(
+                        androidx.compose.ui.graphics.Brush.radialGradient(
+                            listOf(c.accent.copy(alpha = if (c.isDark) 0.42f else 0.25f), Color.Transparent),
+                            center = center, radius = this.size.minDimension / 2f,
+                        )
+                    )
+                }
+                androidx.compose.foundation.Image(
+                    androidx.compose.ui.res.painterResource(com.nbeck.app.R.drawable.logo_d),
+                    contentDescription = null,
+                    modifier = Modifier.size(height),
+                )
+            }
+            Text(
+                "NBA",
+                modifier = Modifier.padding(start = height * 0.04f).offset(y = height * 0.26f),
+                style = Type.display.copy(
+                    fontSize = fs, lineHeight = fs, letterSpacing = 1.sp, brush = metal,
+                    textDirection = TextDirection.Ltr,
+                    shadow = androidx.compose.ui.graphics.Shadow(Color.Black.copy(alpha = if (c.isDark) 0.7f else 0.18f), Offset(0f, 6f), 14f),
+                ),
+            )
         }
     }
 }

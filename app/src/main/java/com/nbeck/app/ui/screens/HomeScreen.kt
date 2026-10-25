@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -82,13 +83,13 @@ fun HomeScreen(
                 Spacer(Modifier.width(Space.s))
                 RoundIcon(Icons.Rounded.Settings, s.settings, onSettings)
             }
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.weight(0.55f))
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Wordmark(height = 76.dp)
-                Spacer(Modifier.height(Space.xs))
+                Wordmark(height = 104.dp)
+                Spacer(Modifier.height(Space.m))
                 Text(s.tagline, style = Type.title, color = c.text2)
             }
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(Space.xxxl))
 
             // Primary action: the daily. Biggest, warmest thing on the screen.
             ModeCard(
@@ -136,6 +137,10 @@ private fun ModeCard(title: String, subtitle: String, icon: ImageVector, primary
         Modifier
             .fillMaxWidth()
             .heightIn(min = if (primary) 104.dp else 84.dp)
+            .then(
+                if (primary) Modifier.shadow(28.dp, shape, ambientColor = c.accent, spotColor = c.accent)
+                else Modifier
+            )
             .clip(shape)
             .background(bg)
             .then(if (!primary) Modifier.border(1.dp, c.border, shape) else Modifier)

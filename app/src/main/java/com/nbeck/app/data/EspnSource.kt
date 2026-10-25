@@ -53,7 +53,10 @@ class EspnSource(
                     if (prev != null) prev.draftYear else gate.withPermit { draftYear(p.id) }
                 }
             }.awaitAll()
-            val players = roster.zip(drafts) { p, draft -> p.copy(draftYear = draft, ring = p.id in ringIds) }
+            val players = roster.zip(drafts) { p, draft ->
+                // ESPN lacks a birthplace for some international players; keep the hand-filled one.
+                p.copy(draftYear = draft, ring = p.id in ringIds, country = p.country ?: known[p.id]?.country)
+            }
                 .map { p -> st[p.id]?.let { p.copy(ppg = it.ppg, rpg = it.rpg, apg = it.apg, gp = it.gp) } ?: p }
                 .sortedBy { it.id }
             PlayerBundle(source = "ESPN public site API", fetchedAt = Instant.now().toString(), players = players)

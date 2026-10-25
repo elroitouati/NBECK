@@ -8,7 +8,6 @@ import com.nbeck.app.game.Engine
 import com.nbeck.app.game.Mode
 import com.nbeck.app.game.ModeStats
 import com.nbeck.app.game.PlayerSearch
-import com.nbeck.app.game.Share
 import com.nbeck.app.game.TeamState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -126,16 +125,6 @@ class StatsTest {
     @Test fun loss_resetsStreak_countsPlayed() {
         val s = ModeStats().record(Mode.FREE, true, 2, d).record(Mode.FREE, false, 8, d)
         assertEquals(2, s.played); assertEquals(1, s.wins); assertEquals(0, s.currentStreak); assertEquals(50, s.winPct)
-    }
-}
-
-class ShareTest {
-    @Test fun format() {
-        val day = LocalDate.of(2026, 10, 24)
-        val a = player(id = "a", team = 2, pos = "F", jersey = "0", country = "USA")
-        val g = player(id = "g", team = 2, pos = "F", jersey = "0", country = "USA", born = "1990-01-01")
-        val txt = Share.text("יומי", day, listOf(Engine.grade(g, a, day), Engine.grade(a, a, day)), won = true)
-        assertEquals("DNBA יומי 24.10 — 2/8\n🟩🟩🟩⬜🟩🟩🟩🟩\n🟩🟩🟩🟩🟩🟩🟩🟩", txt)
     }
 }
 

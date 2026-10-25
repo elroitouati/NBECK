@@ -199,7 +199,7 @@ private fun ValueWithArrow(value: String, arrow: Arrow, fg: Color, style: androi
     }
 }
 
-/** A mini colored square for the result grid (share preview / end screen). */
+/** A mini colored square for the result grid (end screen). */
 @Composable
 fun MiniSquare(mark: Mark, modifier: Modifier = Modifier) {
     Box(modifier.size(16.dp).clip(RoundedCornerShape(4.dp)).background(nb.tile(mark)))

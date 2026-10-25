@@ -1,8 +1,5 @@
 package com.nbeck.app.ui.screens
 
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,7 +34,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
@@ -47,7 +42,6 @@ import com.nbeck.app.data.Countries
 import com.nbeck.app.data.Player
 import com.nbeck.app.game.Daily
 import com.nbeck.app.game.Mode
-import com.nbeck.app.game.Share
 import com.nbeck.app.ui.LocalStrings
 import com.nbeck.app.ui.components.ButtonKind
 import com.nbeck.app.ui.components.Confetti
@@ -71,7 +65,6 @@ fun EndScreen(ui: GameUi, onClose: () -> Unit, onPlayAgain: () -> Unit, onHome: 
     val c = nb
     val s = LocalStrings.current
     val answer = ui.answer ?: return
-    val ctx = LocalContext.current
     val team = answer.team
     Box(
         Modifier.fillMaxSize().background(
@@ -100,13 +93,8 @@ fun EndScreen(ui: GameUi, onClose: () -> Unit, onPlayAgain: () -> Unit, onHome: 
             Spacer(Modifier.height(Space.xl))
             ResultGrid(ui)
             Spacer(Modifier.height(Space.xl))
-            val shareText = Share.text(if (ui.mode == Mode.DAILY) s.shareModeDaily else s.shareModeFree, ui.date, ui.results, ui.won)
-            NbButton(s.shareWhatsapp, Modifier.fillMaxWidth(), leading = { Icon(Icons.Rounded.Share, null, tint = c.onAccent) }) {
-                shareWhatsapp(ctx, shareText)
-            }
-            Spacer(Modifier.height(Space.m))
             if (ui.mode == Mode.FREE) {
-                NbButton(s.playAgain, Modifier.fillMaxWidth(), kind = ButtonKind.SECONDARY, onClick = onPlayAgain)
+                NbButton(s.playAgain, Modifier.fillMaxWidth(), onClick = onPlayAgain)
             } else {
                 Countdown()
             }
@@ -225,14 +213,3 @@ fun Countdown(modifier: Modifier = Modifier) {
         LedText("%02d:%02d:%02d".format(sec / 3600, (sec % 3600) / 60, sec % 60), style = Type.led.copy(fontSize = 26.sp, lineHeight = 28.sp))
     }
 }
-
-fun shareWhatsapp(ctx: Context, text: String) {
-    val base = Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, text) }
-    val wa = Intent(base).setPackage("com.whatsapp")
-    try {
-        ctx.startActivity(wa.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-    } catch (_: ActivityNotFoundException) {
-        ctx.startActivity(Intent.createChooser(base, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-    }
-}
-
