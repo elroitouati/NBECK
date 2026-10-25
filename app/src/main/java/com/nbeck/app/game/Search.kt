@@ -5,7 +5,7 @@ import java.text.Normalizer
 
 /**
  * Autocomplete over first, last and full names. Case- and accent-insensitive; from 3 letters on it
- * also forgives small typos (edit distance 1, or 2 for queries of 6+ letters).
+ * also forgives small typos (edit distance 1, or 2 for queries of 6+ letters). Results are A-Z.
  */
 class PlayerSearch(players: List<Player>) {
 
@@ -23,9 +23,8 @@ class PlayerSearch(players: List<Player>) {
         return entries.asSequence()
             .filter { it.player.id !in exclude }
             .mapNotNull { e -> score(e, q, qTokens)?.let { e to it } }
-            .sortedWith(compareBy<Pair<Entry, Int>> { it.second }
-                .thenByDescending { it.first.player.ppg ?: -1.0 }
-                .thenBy { it.first.full })
+            // Name matches first, typo-tolerant ones after; each group in A-Z order of the full name.
+            .sortedWith(compareBy<Pair<Entry, Int>> { if (it.second <= 1) 0 else 1 }.thenBy { it.first.full })
             .take(limit)
             .map { it.first.player }
             .toList()

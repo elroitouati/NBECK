@@ -424,13 +424,8 @@ private fun SuggestionRow(p: Player, onClick: () -> Unit) {
             Text(p.name, style = Type.bodyStrong.copy(textDirection = TextDirection.Ltr), color = c.text1, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(p.team.fullName, style = Type.label.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Normal, textDirection = TextDirection.Ltr), color = c.text2, maxLines = 1)
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(p.team.abbr, style = Type.label.copy(textDirection = TextDirection.Ltr), color = c.text2)
-            Spacer(Modifier.width(Space.s))
-            Box(Modifier.size(width = 34.dp, height = 32.dp).clip(com.nbeck.app.ui.components.JerseyShape).background(p.team.color), contentAlignment = Alignment.Center) {
-                Text(p.jersey ?: "—", style = Type.label.copy(fontSize = 12.sp, textDirection = TextDirection.Ltr), color = Color(0xFFF7F7F7), modifier = Modifier.padding(top = 6.dp))
-            }
-        }
+        // Team only — the jersey number is a category, so showing it here would give it away.
+        Text(p.team.abbr, style = Type.label.copy(textDirection = TextDirection.Ltr), color = c.text2)
     }
 }
 

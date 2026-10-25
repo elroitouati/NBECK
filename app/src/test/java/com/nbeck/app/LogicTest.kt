@@ -32,7 +32,11 @@ class SearchTest {
         val r = names("s")
         assertTrue("Stephen Curry" in r && "Seth Curry" in r)
     }
-    @Test fun lastName_prefix() = assertEquals(listOf("Stephen Curry", "Seth Curry"), names("cur"))
+    @Test fun lastName_prefix() = assertEquals(listOf("Seth Curry", "Stephen Curry"), names("cur"))
+    @Test fun alphabetical() {
+        val s = PlayerSearch(listOf(player("1", "Deni Avdija"), player("2", "De'Aaron Fox"), player("3", "Dennis Schroder")))
+        assertEquals(listOf("De'Aaron Fox", "Deni Avdija", "Dennis Schroder"), s.search("de").map { it.name })
+    }
     @Test fun caseInsensitive() = assertEquals("Nikola Jokic", names("JOK").first())
     @Test fun accentsIgnored() = assertEquals("Luka Dončić", names("doncic").first())
     @Test fun punctuationIgnored() = assertEquals("De'Aaron Fox", names("deaaron").first())
