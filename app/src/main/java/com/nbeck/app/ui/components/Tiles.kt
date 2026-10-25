@@ -13,11 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Adjust
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Check
@@ -86,7 +84,9 @@ fun FlipTile(
     onLanded: (Mark) -> Unit = {},
 ) {
     val rot = remember { Animatable(if (animate) 0f else 180f) }
-    LaunchedEffect(animate) {
+    // Keyed on Unit, not on `animate`: when the row is later marked done, a flip still in progress
+    // must finish rather than be cancelled half-turned.
+    LaunchedEffect(Unit) {
         if (animate && rot.value < 180f) {
             kotlinx.coroutines.delay(delayMs.toLong())
             rot.animateTo(90f, tween(Motion.flip / 2, easing = androidx.compose.animation.core.FastOutLinearInEasing))
@@ -135,10 +135,8 @@ fun TileFace(category: Category, cell: Cell, guess: Player, date: LocalDate, mod
             ),
         contentAlignment = Alignment.Center,
     ) {
-        // Content starts below the corner mark so the two never overlap on narrow tiles.
-        val badgeTop = category != Category.NUMBER && category != Category.RING
         BoxWithConstraints(
-            Modifier.fillMaxSize().padding(start = 2.dp, end = 2.dp, top = if (badgeTop) 9.dp else 2.dp, bottom = 2.dp),
+            Modifier.fillMaxSize().padding(2.dp),
             contentAlignment = Alignment.Center,
         ) {
             val small = maxWidth < 46.dp
@@ -180,11 +178,6 @@ fun TileFace(category: Category, cell: Cell, guess: Player, date: LocalDate, mod
                 }
             }
         }
-        // The ring tile's content already is a ✓/✗, so a second mark badge would only confuse.
-        if (category != Category.RING) {
-            val badgeAt = if (category == Category.NUMBER) Alignment.BottomEnd else Alignment.TopEnd
-            MarkBadge(cell.mark, Modifier.align(badgeAt).padding(2.dp), size = 10.dp, solid = teamGreen)
-        }
     }
 }
 
@@ -203,17 +196,6 @@ private fun ValueWithArrow(value: String, arrow: Arrow, fg: Color, style: androi
             )
         }
     }
-    }
-}
-
-/** Shape cue on top of color, for color-blind players: ✓ exact, ◎ close, ✕ far. */
-@Composable
-fun MarkBadge(mark: Mark, modifier: Modifier = Modifier, size: androidx.compose.ui.unit.Dp = 12.dp, solid: Boolean = false) {
-    val c = nb
-    val icon = when (mark) { Mark.GREEN -> Icons.Rounded.Check; Mark.YELLOW -> Icons.Rounded.Adjust; Mark.GRAY -> Icons.Rounded.Close }
-    val bg = if (solid) c.tile(mark) else c.onTile(mark).copy(alpha = 0.16f)
-    Box(modifier.size(size).clip(CircleShape).background(bg), contentAlignment = Alignment.Center) {
-        Icon(icon, contentDescription = mark.name.lowercase(), tint = c.onTile(mark), modifier = Modifier.size(size * 0.8f))
     }
 }
 

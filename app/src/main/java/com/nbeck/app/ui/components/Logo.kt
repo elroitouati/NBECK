@@ -20,41 +20,47 @@ import androidx.compose.ui.unit.sp
 import com.nbeck.app.ui.theme.Type
 import com.nbeck.app.ui.theme.nb
 
-/** The ball mark — same geometry as the launcher icon. */
+/**
+ * The letter A drawn as a basketball: the two black seams that meet at the top are the legs of the A,
+ * and the ball's horizontal seam doubles as the crossbar. Same geometry as the launcher icon.
+ */
 @Composable
-fun BallMark(size: Dp, modifier: Modifier = Modifier, ball: Color = nb.accent, seam: Color = Color(0xFF1A0E06)) {
+fun BallA(size: Dp, modifier: Modifier = Modifier, ball: Color = nb.accent, seam: Color = Color(0xFF1A0E06)) {
     Canvas(modifier.size(size)) {
         val r = this.size.minDimension / 2f
         val c = Offset(r, r)
         drawCircle(ball, r, c)
-        val sw = r * 0.085f
-        val st = Stroke(width = sw)
-        drawLine(seam, Offset(c.x, c.y - r), Offset(c.x, c.y + r), sw)
-        drawLine(seam, Offset(c.x - r, c.y), Offset(c.x + r, c.y), sw)
-        val left = Path().apply {
-            moveTo(c.x - r * 0.62f, c.y - r * 0.78f)
-            quadraticTo(c.x - r * 0.12f, c.y, c.x - r * 0.62f, c.y + r * 0.78f)
-        }
-        val right = Path().apply {
-            moveTo(c.x + r * 0.62f, c.y - r * 0.78f)
-            quadraticTo(c.x + r * 0.12f, c.y, c.x + r * 0.62f, c.y + r * 0.78f)
-        }
-        drawPath(left, seam, style = st)
-        drawPath(right, seam, style = st)
-        drawCircle(Color.White.copy(alpha = 0.10f), r * 0.55f, Offset(c.x - r * 0.3f, c.y - r * 0.35f))
+        drawCircle(Color.White.copy(alpha = 0.10f), r * 0.5f, Offset(c.x - r * 0.38f, c.y - r * 0.4f))
+        val thin = Stroke(width = r * 0.06f)
+        // Side seams, light, so the A reads first.
+        drawPath(Path().apply {
+            moveTo(c.x - r * 0.92f, c.y - r * 0.38f); quadraticTo(c.x - r * 0.55f, c.y + r * 0.1f, c.x - r * 0.9f, c.y + r * 0.45f)
+        }, seam.copy(alpha = 0.55f), style = thin)
+        drawPath(Path().apply {
+            moveTo(c.x + r * 0.92f, c.y - r * 0.38f); quadraticTo(c.x + r * 0.55f, c.y + r * 0.1f, c.x + r * 0.9f, c.y + r * 0.45f)
+        }, seam.copy(alpha = 0.55f), style = thin)
+        // The A.
+        val leg = Stroke(width = r * 0.17f, cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round)
+        drawPath(Path().apply {
+            moveTo(c.x - r * 0.56f, c.y + r * 0.83f)
+            lineTo(c.x, c.y - r * 0.80f)
+            lineTo(c.x + r * 0.56f, c.y + r * 0.83f)
+        }, seam, style = leg)
+        val barY = c.y + r * 0.22f
+        val half = kotlin.math.sqrt(r * r - (barY - c.y) * (barY - c.y))
+        drawLine(seam, Offset(c.x - half, barY), Offset(c.x + half, barY), r * 0.12f)
     }
 }
 
-/** NBECK wordmark: the ball sits in for the space before the E — always LTR. */
+/** DNBA wordmark: "DNB" set in the display face, the A is a basketball. Always LTR. */
 @Composable
 fun Wordmark(modifier: Modifier = Modifier, height: Dp = 64.dp) {
     val c = nb
-    val fs = (height.value * 1.0f).sp
+    val fs = height.value.sp
     androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr) {
-    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(height * 0.08f)) {
-        Text("NB", style = Type.display.copy(fontSize = fs, lineHeight = fs, textDirection = TextDirection.Ltr), color = c.text1)
-        BallMark(height * 0.72f)
-        Text("ECK", style = Type.display.copy(fontSize = fs, lineHeight = fs, textDirection = TextDirection.Ltr), color = c.text1)
-    }
+        Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(height * 0.06f)) {
+            Text("DNB", style = Type.display.copy(fontSize = fs, lineHeight = fs, textDirection = TextDirection.Ltr), color = c.text1)
+            BallA(height * 0.76f)
+        }
     }
 }

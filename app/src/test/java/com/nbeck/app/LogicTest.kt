@@ -131,7 +131,7 @@ class ShareTest {
         val a = player(id = "a", team = 2, pos = "F", jersey = "0", country = "USA")
         val g = player(id = "g", team = 2, pos = "F", jersey = "0", country = "USA", born = "1990-01-01")
         val txt = Share.text("יומי", day, listOf(Engine.grade(g, a, day), Engine.grade(a, a, day)), won = true)
-        assertEquals("NBECK יומי 24.10 — 2/8\n🟩🟩🟩⬜🟩🟩🟩🟩\n🟩🟩🟩🟩🟩🟩🟩🟩", txt)
+        assertEquals("DNBA יומי 24.10 — 2/8\n🟩🟩🟩⬜🟩🟩🟩🟩\n🟩🟩🟩🟩🟩🟩🟩🟩", txt)
     }
 }
 

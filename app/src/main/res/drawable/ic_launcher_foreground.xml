@@ -1,17 +1,16 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <group android:rotation="-18" android:pivotX="54" android:pivotY="54">
-        <!-- ball -->
-        <path android:fillColor="#FFFF7A1A"
-            android:pathData="M54,30a24,24 0 1,1 0,48a24,24 0 1,1 0,-48z" />
-        <!-- highlight -->
-        <path android:fillColor="#22FFFFFF"
-            android:pathData="M46,36a12,12 0 1,1 0,24a12,12 0 1,1 0,-24z" />
-        <!-- seams -->
-        <path android:strokeColor="#FF1A0E06" android:strokeWidth="2.2"
-            android:pathData="M54,30v48M30,54h48" />
-        <path android:strokeColor="#FF1A0E06" android:strokeWidth="2.2"
-            android:pathData="M39,35.5Q48,54 39,72.5M69,35.5Q60,54 69,72.5" />
-    </group>
+    <!-- The DNBA "A" ball: seams form the letter A; the horizontal seam is its crossbar. r = 25 -->
+    <path android:fillColor="#FFFF7A1A"
+        android:pathData="M54,29a25,25 0 1,1 0,50a25,25 0 1,1 0,-50z" />
+    <path android:fillColor="#1FFFFFFF"
+        android:pathData="M44.5,32a12.5,12.5 0 1,1 0,25a12.5,12.5 0 1,1 0,-25z" />
+    <path android:strokeColor="#8C1A0E06" android:strokeWidth="1.5"
+        android:pathData="M31,44.5Q40.25,56.5 31.5,65.25M77,44.5Q67.75,56.5 76.5,65.25" />
+    <path android:strokeColor="#FF1A0E06" android:strokeWidth="4.25"
+        android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M40,74.75L54,34L68,74.75" />
+    <path android:strokeColor="#FF1A0E06" android:strokeWidth="3"
+        android:pathData="M29.6,59.5H78.4" />
 </vector>

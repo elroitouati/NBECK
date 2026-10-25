@@ -14,6 +14,7 @@ import kotlin.random.Random
  * gets the same answer unless the winner itself is missing from their list.
  */
 object Daily {
+    // Kept from the app's first name so the daily player sequence did not change with the rename.
     private const val SEED = "NBECK-v1"
 
     fun dateKey(date: LocalDate): String = date.toString()

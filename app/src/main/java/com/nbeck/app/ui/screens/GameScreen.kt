@@ -87,7 +87,6 @@ import com.nbeck.app.ui.components.BlankTile
 import com.nbeck.app.ui.components.FlipTile
 import com.nbeck.app.ui.components.IconBox
 import com.nbeck.app.ui.components.LedText
-import com.nbeck.app.ui.components.MarkBadge
 import com.nbeck.app.ui.components.PlayerPhoto
 import com.nbeck.app.ui.components.Scoreboard
 import com.nbeck.app.ui.components.TopBar
@@ -100,7 +99,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /** Total time for one row to finish flipping. */
-private val ROW_FLIP_MS = Motion.flipStagger * 5 + Motion.flip
+private val ROW_FLIP_MS = Motion.flipStagger * (Category.entries.size - 1) + Motion.flip
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -335,9 +334,7 @@ private fun EmptyHint(modifier: Modifier) {
 fun Legend(mark: Mark, label: String) {
     val c = nb
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(22.dp).clip(RoundedCornerShape(6.dp)).background(c.tile(mark)), contentAlignment = Alignment.Center) {
-            MarkBadge(mark, size = 16.dp)
-        }
+        Box(Modifier.size(22.dp).clip(RoundedCornerShape(6.dp)).background(c.tile(mark)))
         Spacer(Modifier.width(6.dp))
         Text(label, style = Type.label, color = c.text1)
     }

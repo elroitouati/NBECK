@@ -24,7 +24,7 @@ import com.nbeck.app.data.ThemeMode
 import com.nbeck.app.game.Mark
 
 /*
- * NBECK design tokens.
+ * DNBA design tokens.
  * Direction: "arena at night" — dark navy court, warm parquet, spotlight falloff, an LED scoreboard.
  * One dominant hue (basketball orange) + neutrals; the green/yellow/gray grading colors are
  * semantic and are never used decoratively. Team colors appear only where the spec asks.
