@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="100dp" android:height="100dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <!-- The DNBA "D" basketball. Same artwork as the launcher icon (ic_launcher_foreground). -->
+    <group>
+        <path android:pathData="M5,1 H52 A47.5,49 0 0 1 52,99 H5 Q1,99 1,95 V5 Q1,1 5,1 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient android:type="radial" android:centerX="45" android:centerY="35" android:gradientRadius="80">
+                    <item android:offset="0" android:color="#FFFF9A3C" />
+                    <item android:offset="0.6" android:color="#FFF06E1A" />
+                    <item android:offset="1" android:color="#FFC8420A" />
+                </gradient>
+            </aapt:attr>
+        </path>
+        <clip-path android:pathData="M5,1 H52 A47.5,49 0 0 1 52,99 H5 Q1,99 1,95 V5 Q1,1 5,1 Z" />
+        <path android:strokeColor="#FF141010" android:strokeWidth="4.4" android:pathData="M13,-2 Q13,50 16,102" />
+        <path android:strokeColor="#FF141010" android:strokeWidth="4.4" android:pathData="M-2,43 Q50,38 102,60" />
+        <path android:strokeColor="#FF141010" android:strokeWidth="4.4" android:pathData="M62,0 C38,11 24,31 28,50 C31,70 52,86 78,98" />
+    </group>
+</vector>

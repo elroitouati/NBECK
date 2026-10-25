@@ -23,6 +23,12 @@ import com.nbeck.app.ui.screens.StatsScreen
 import com.nbeck.app.ui.stringsFor
 import com.nbeck.app.ui.theme.NbeckTheme
 import kotlinx.coroutines.runBlocking
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
@@ -34,6 +40,8 @@ import org.robolectric.annotation.GraphicsMode
 import java.time.LocalDate
 
 /** Design review renders (not assertions). Run with -Pscreenshots; output in app/build/outputs/roborazzi. */
+private fun androidx.compose.ui.Modifier.androidxBg() = this.background(androidx.compose.ui.graphics.Color(0xFF2B3FB0))
+
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [34], qualifiers = "w393dp-h851dp-xxhdpi")
@@ -65,6 +73,26 @@ class ScreenshotTest {
     }
 
     private val someGuesses = listOf("LeBron James", "Nikola Jokic", "Jayson Tatum", "Deni Avdija")
+
+    /** Launcher icon under the two common masks: circle and rounded square (72dp visible of 108dp). */
+    @Test fun launcher_icon() = shot("00_icon") {
+        androidx.compose.foundation.layout.Row(
+            androidx.compose.ui.Modifier.androidxBg().padding(24.dp),
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(24.dp),
+        ) {
+            listOf(androidx.compose.foundation.shape.CircleShape, androidx.compose.foundation.shape.RoundedCornerShape(22.dp)).forEach { shape ->
+                androidx.compose.foundation.layout.Box(
+                    androidx.compose.ui.Modifier.size(144.dp).clip(shape).background(androidx.compose.ui.graphics.Color(0xFF0A0A0B)),
+                    contentAlignment = androidx.compose.ui.Alignment.Center,
+                ) {
+                    androidx.compose.foundation.Image(
+                        androidx.compose.ui.res.painterResource(R.drawable.ic_launcher_foreground), null,
+                        androidx.compose.ui.Modifier.requiredSize(216.dp),
+                    )
+                }
+            }
+        }
+    }
 
     @Test fun home_he_dark() = shot("01_home_he_dark") { HomeScreen({}, {}, {}, {}, {}) }
     @Test fun home_en_light() = shot("02_home_en_light", Language.EN, ThemeMode.LIGHT) { HomeScreen({}, {}, {}, {}, {}) }
