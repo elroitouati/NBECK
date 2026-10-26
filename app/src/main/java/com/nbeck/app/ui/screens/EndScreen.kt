@@ -95,7 +95,7 @@ fun EndScreen(ui: GameUi, onClose: () -> Unit, onPlayAgain: () -> Unit, onHome: 
             Spacer(Modifier.height(Space.xl))
             if (ui.mode == Mode.FREE) {
                 NbButton(s.playAgain, Modifier.fillMaxWidth(), onClick = onPlayAgain)
-            } else {
+            } else if (ui.date == LocalDate.now()) {
                 Countdown()
             }
             Spacer(Modifier.height(Space.s))

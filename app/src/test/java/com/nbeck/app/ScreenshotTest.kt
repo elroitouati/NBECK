@@ -94,8 +94,8 @@ class ScreenshotTest {
         }
     }
 
-    @Test fun home_he_dark() = shot("01_home_he_dark") { HomeScreen({}, {}, {}, {}, {}) }
-    @Test fun home_en_light() = shot("02_home_en_light", Language.EN, ThemeMode.LIGHT) { HomeScreen({}, {}, {}, {}, {}) }
+    @Test fun home_he_dark() = shot("01_home_he_dark") { HomeScreen({}, {}, {}, {}, {}, {}) }
+    @Test fun home_en_light() = shot("02_home_en_light", Language.EN, ThemeMode.LIGHT) { HomeScreen({}, {}, {}, {}, {}, {}) }
     @Test fun howto_he() = shot("03_howto_he") { HowToScreen({}, {}) }
     @Test fun game_empty_he() { seedDaily(emptyList()); shot("04_game_empty_he") { GameScreen(Mode.DAILY, {}, {}) } }
     @Test fun game_progress_he() { seedDaily(someGuesses); shot("05_game_progress_he") { GameScreen(Mode.DAILY, {}, {}) } }
@@ -103,5 +103,9 @@ class ScreenshotTest {
     @Test fun game_won_he() { seedDaily(someGuesses.take(3), finished = true, won = true); shot("07_end_won_he") { GameScreen(Mode.DAILY, {}, {}) } }
     @Test fun stats_he() = shot("08_stats_he") { StatsScreen({}, {}) }
     @Test fun achievements_he() = shot("09_achievements_he") { AchievementsScreen({}) }
+    @Test fun archive_he() {
+        seedDaily(listOf("LeBron James", "Nikola Jokic"), finished = true, won = true)
+        shot("11_archive_he") { com.nbeck.app.ui.screens.ArchiveScreen({}, {}) }
+    }
     @Test fun settings_he() = shot("10_settings_he") { SettingsScreen({}) }
 }

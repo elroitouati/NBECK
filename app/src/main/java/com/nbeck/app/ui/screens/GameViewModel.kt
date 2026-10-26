@@ -46,7 +46,8 @@ data class GameUi(
     val pairs get() = guesses.zip(results)
 }
 
-class GameViewModel(app: Application, private val mode: Mode) : AndroidViewModel(app) {
+/** [day]: the daily's date (today, or a past date from the archive); ignored for free play. */
+class GameViewModel(app: Application, private val mode: Mode, private val day: LocalDate) : AndroidViewModel(app) {
     private val nb = app as NbeckApp
     private val repo = nb.players
     private val prefs = nb.prefs
@@ -62,12 +63,12 @@ class GameViewModel(app: Application, private val mode: Mode) : AndroidViewModel
         viewModelScope.launch {
             players = repo.load()
             search = PlayerSearch(players)
-            start(prefs.game(mode).first())
+            start(prefs.game(mode, day).first())
         }
     }
 
     private suspend fun start(prev: SavedGame?) {
-        val today = LocalDate.now()
+        val today = if (mode == Mode.DAILY) day else LocalDate.now()
         val byId = players.associateBy { it.id }
         val restored = when (mode) {
             Mode.DAILY -> prev?.takeIf { it.date == today.toString() && byId.containsKey(it.answerId) }
@@ -149,7 +150,8 @@ class GameViewModel(app: Application, private val mode: Mode) : AndroidViewModel
         val record = finished && !g.recorded
         if (record) {
             val today = LocalDate.parse(g.date)
-            stats = stats.with(mode, stats[mode].record(mode, won, guesses.size, today))
+            val live = mode == Mode.FREE || today == LocalDate.now()
+            stats = stats.with(mode, stats[mode].record(mode, won, guesses.size, today, streak = live))
             prefs.saveStats(stats)
             game = FinishedGame(mode, won, results)
         }
@@ -172,8 +174,8 @@ class GameViewModel(app: Application, private val mode: Mode) : AndroidViewModel
         }
     }
 
-    class Factory(private val app: Application, private val mode: Mode) : ViewModelProvider.Factory {
+    class Factory(private val app: Application, private val mode: Mode, private val day: LocalDate) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T = GameViewModel(app, mode) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T = GameViewModel(app, mode, day) as T
     }
 }

@@ -93,6 +93,19 @@ interface Strings {
     val undrafted: String
     val champion: String
     val noTitle: String
+    val archive: String
+    val archiveSub: String
+    val today: String
+    val notPlayed: String
+    val play: String
+    val deleteData: String
+    val resetSection: String
+    val deleteTitle: String
+    val deleteBody: String
+    val delete: String
+    val cancel: String
+    val deleted: String
+    val locale: java.util.Locale
 }
 
 object He : Strings {
@@ -219,6 +232,19 @@ object He : Strings {
     override val undrafted = "UND"
     override val champion = "אלוף"
     override val noTitle = "אין"
+    override val archive = "אתגרים קודמים"
+    override val archiveSub = "האתגר היומי של 30 הימים האחרונים"
+    override val today = "היום"
+    override val notPlayed = "עוד לא שיחקת"
+    override val play = "שחק"
+    override val deleteData = "מחק את הנתונים שלי"
+    override val resetSection = "איפוס"
+    override val deleteTitle = "למחוק את כל הנתונים?"
+    override val deleteBody = "כל הסטטיסטיקות, ההישגים והמשחקים יימחקו ויתאפסו. אי אפשר לשחזר אותם."
+    override val delete = "מחק הכול"
+    override val cancel = "ביטול"
+    override val deleted = "הנתונים נמחקו"
+    override val locale: java.util.Locale = java.util.Locale.forLanguageTag("he")
 }
 
 object En : Strings {
@@ -345,6 +371,19 @@ object En : Strings {
     override val undrafted = "UND"
     override val champion = "Champion"
     override val noTitle = "None"
+    override val archive = "Past challenges"
+    override val archiveSub = "The daily challenge of the last 30 days"
+    override val today = "Today"
+    override val notPlayed = "Not played yet"
+    override val play = "Play"
+    override val deleteData = "Delete my data"
+    override val resetSection = "Reset"
+    override val deleteTitle = "Delete all your data?"
+    override val deleteBody = "All statistics, achievements and games will be erased and reset. This can't be undone."
+    override val delete = "Delete everything"
+    override val cancel = "Cancel"
+    override val deleted = "Your data was deleted"
+    override val locale: java.util.Locale = java.util.Locale.ENGLISH
 }
 
 fun stringsFor(l: Language): Strings = if (l == Language.HE) He else En

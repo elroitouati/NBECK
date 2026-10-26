@@ -35,6 +35,7 @@ import com.nbeck.app.NbeckApp
 import com.nbeck.app.data.Language
 import com.nbeck.app.data.Settings
 import com.nbeck.app.data.ThemeMode
+import com.nbeck.app.data.effectiveTheme
 import com.nbeck.app.ui.LocalStrings
 import com.nbeck.app.ui.components.ArenaBackground
 import com.nbeck.app.ui.components.ButtonKind
@@ -55,6 +56,8 @@ fun SettingsScreen(onBack: () -> Unit) {
     val players by app.players.players.collectAsState()
     val scope = rememberCoroutineScope()
     var refreshState by remember { mutableStateOf<String?>(null) }
+    var confirmDelete by remember { mutableStateOf(false) }
+    var deletedNote by remember { mutableStateOf<String?>(null) }
     fun update(f: (Settings) -> Settings) { scope.launch { app.prefs.updateSettings(f) } }
 
     ArenaBackground(parquet = false) {
@@ -66,9 +69,10 @@ fun SettingsScreen(onBack: () -> Unit) {
                     update { it.copy(language = if (i == 0) Language.HE else Language.EN) }
                 }
                 Section(s.theme)
-                val themes = listOf(ThemeMode.DARK, ThemeMode.LIGHT, ThemeMode.SYSTEM)
-                Segmented(listOf(s.themeDark, s.themeLight, s.themeSystem), themes.indexOf(settings.theme)) { i ->
-                    update { it.copy(theme = themes[i]) }
+                // Follows the phone's dark/light setting until the player picks a theme here.
+                val themes = listOf(ThemeMode.SYSTEM, ThemeMode.DARK, ThemeMode.LIGHT)
+                Segmented(listOf(s.themeSystem, s.themeDark, s.themeLight), themes.indexOf(settings.effectiveTheme)) { i ->
+                    update { it.copy(theme = themes[i], themeChosen = true) }
                 }
                 Spacer(Modifier.height(Space.xl))
                 Toggle(s.sounds, settings.sound) { v -> update { it.copy(sound = v) } }
@@ -84,9 +88,33 @@ fun SettingsScreen(onBack: () -> Unit) {
                         refreshState = if (ok) s.refreshed else s.refreshFailed
                     }
                 }
+                Section(s.resetSection)
+                NbButton(
+                    deletedNote ?: s.deleteData, Modifier.fillMaxWidth(), kind = ButtonKind.GHOST,
+                    enabled = deletedNote == null,
+                ) { confirmDelete = true }
                 Spacer(Modifier.height(Space.xxl))
             }
         }
+    }
+    if (confirmDelete) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            containerColor = c.surface1,
+            title = { Text(s.deleteTitle, style = Type.title, color = c.text1) },
+            text = { Text(s.deleteBody, style = Type.body, color = c.text2) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    confirmDelete = false
+                    scope.launch { app.prefs.clearProgress(); deletedNote = s.deleted }
+                }) { Text(s.delete, style = Type.bodyStrong, color = androidx.compose.ui.graphics.Color(0xFFE5484D)) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { confirmDelete = false }) {
+                    Text(s.cancel, style = Type.bodyStrong, color = c.text1)
+                }
+            },
+        )
     }
 }
 

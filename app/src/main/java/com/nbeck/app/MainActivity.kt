@@ -49,10 +49,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.nbeck.app.audio.Sfx
 import com.nbeck.app.data.Language
+import com.nbeck.app.data.effectiveTheme
 import com.nbeck.app.game.Achievement
 import com.nbeck.app.game.Mode
 import com.nbeck.app.ui.LocalStrings
 import com.nbeck.app.ui.screens.AchievementsScreen
+import com.nbeck.app.ui.screens.ArchiveScreen
 import com.nbeck.app.ui.screens.GameScreen
 import com.nbeck.app.ui.screens.HomeScreen
 import com.nbeck.app.ui.screens.HowToScreen
@@ -86,7 +88,7 @@ class MainActivity : ComponentActivity() {
             }
             val dir = if (st.language == Language.HE) LayoutDirection.Rtl else LayoutDirection.Ltr
             CompositionLocalProvider(LocalStrings provides stringsFor(st.language), LocalLayoutDirection provides dir) {
-                NbeckTheme(st.theme) {
+                NbeckTheme(st.effectiveTheme) {
                     AppNav(showHowToFirst = !st.seenHowTo)
                     AchievementToastHost()
                 }
@@ -122,11 +124,20 @@ private fun AppNav(showHowToFirst: Boolean) {
                 onAchievements = { nav.navigate("achievements") },
                 onSettings = { nav.navigate("settings") },
                 onHowTo = { nav.navigate("howto") },
+                onArchive = { nav.navigate("archive") },
             )
         }
-        composable("game/{mode}") { entry ->
+        composable(
+            "game/{mode}?date={date}",
+            arguments = listOf(androidx.navigation.navArgument("date") { type = androidx.navigation.NavType.StringType; nullable = true; defaultValue = null }),
+        ) { entry ->
             val mode = Mode.valueOf(entry.arguments?.getString("mode") ?: "DAILY")
-            GameScreen(mode, onBack = { nav.popBackStack() }, onHome = { nav.popBackStack("home", inclusive = false) })
+            val date = entry.arguments?.getString("date")?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }
+                ?: java.time.LocalDate.now()
+            GameScreen(mode, onBack = { nav.popBackStack() }, onHome = { nav.popBackStack("home", inclusive = false) }, date = date)
+        }
+        composable("archive") {
+            ArchiveScreen(onBack = { nav.popBackStack() }, onPlay = { d -> nav.navigate("game/DAILY?date=$d") })
         }
         composable("howto") {
             HowToScreen(onBack = { nav.popBackStack() }, onPlay = {

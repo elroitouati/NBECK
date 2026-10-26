@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.time.LocalDate
 
 enum class Language { HE, EN }
 enum class ThemeMode { SYSTEM, DARK, LIGHT }
@@ -21,11 +22,18 @@ enum class ThemeMode { SYSTEM, DARK, LIGHT }
 @Serializable
 data class Settings(
     val language: Language = Language.HE,
-    val theme: ThemeMode = ThemeMode.DARK,
+    val theme: ThemeMode = ThemeMode.SYSTEM,
+    /** False until the player picks a theme; until then the app follows the system setting. */
+    val themeChosen: Boolean = false,
     val sound: Boolean = true,
     val haptics: Boolean = true,
     val seenHowTo: Boolean = false,
 )
+
+/** Theme actually in effect: the system's until the player picks one in Settings. */
+val Settings.effectiveTheme: ThemeMode get() = effectiveThemeOf(this)
+
+fun effectiveThemeOf(s: Settings): ThemeMode = if (s.themeChosen) s.theme else ThemeMode.SYSTEM
 
 /** A game in progress or finished. Daily games carry their date so a new day starts fresh. */
 @Serializable
@@ -61,17 +69,46 @@ class Prefs(private val context: Context) {
     suspend fun saveStats(s: Stats) = put(K_STATS, Stats.serializer(), s)
     suspend fun saveAchievements(s: AchievementState) = put(K_ACH, AchievementState.serializer(), s)
 
-    fun game(mode: Mode): Flow<SavedGame?> = context.store.data.map { p ->
-        p[gameKey(mode)]?.let { runCatching { json.decodeFromString(SavedGame.serializer(), it) }.getOrNull() }
+    /** Daily games are stored per date (archive); free play keeps one running game. */
+    fun game(mode: Mode, date: LocalDate = LocalDate.now()): Flow<SavedGame?> = context.store.data.map { p ->
+        val raw = p[gameKey(mode, date)]
+            // Before the archive existed, today's daily lived under one key.
+            ?: if (mode == Mode.DAILY) p[LEGACY_DAILY] else null
+        raw?.let { runCatching { json.decodeFromString(SavedGame.serializer(), it) }.getOrNull() }
+            ?.takeIf { mode == Mode.FREE || it.date == date.toString() }
     }
 
-    suspend fun saveGame(g: SavedGame) = put(gameKey(g.mode), SavedGame.serializer(), g)
+    /** Every stored daily game, by date (ISO). */
+    val dailyGames: Flow<Map<String, SavedGame>> = context.store.data.map { p ->
+        p.asMap().entries.mapNotNull { (k, v) ->
+            if (k.name != LEGACY_DAILY.name && !k.name.startsWith("game_daily_")) return@mapNotNull null
+            runCatching { json.decodeFromString(SavedGame.serializer(), v as String) }.getOrNull()
+        }.associateBy { it.date }
+    }
 
-    private fun gameKey(mode: Mode) = stringPreferencesKey("game_${mode.name.lowercase()}")
+    suspend fun saveGame(g: SavedGame) {
+        context.store.edit { p ->
+            p[gameKey(g.mode, LocalDate.parse(g.date))] = json.encodeToString(SavedGame.serializer(), g)
+            if (g.mode == Mode.DAILY) p.remove(LEGACY_DAILY) // migrated to the per-date key
+        }
+    }
+
+    /** "Delete my data": statistics, achievements and all games. Settings (language, theme) stay. */
+    suspend fun clearProgress() {
+        context.store.edit { p ->
+            val keep = p[K_SETTINGS]
+            p.clear()
+            if (keep != null) p[K_SETTINGS] = keep
+        }
+    }
+
+    private fun gameKey(mode: Mode, date: LocalDate) =
+        if (mode == Mode.DAILY) stringPreferencesKey("game_daily_$date") else stringPreferencesKey("game_free")
 
     private companion object {
         val K_SETTINGS = stringPreferencesKey("settings")
         val K_STATS = stringPreferencesKey("stats")
         val K_ACH = stringPreferencesKey("achievements")
+        val LEGACY_DAILY = stringPreferencesKey("game_daily")
     }
 }

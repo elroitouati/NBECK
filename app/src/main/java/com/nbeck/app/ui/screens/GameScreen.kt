@@ -103,10 +103,10 @@ private val ROW_FLIP_MS = Motion.flipStagger * (Category.entries.size - 1) + Mot
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun GameScreen(mode: Mode, onBack: () -> Unit, onHome: () -> Unit) {
+fun GameScreen(mode: Mode, onBack: () -> Unit, onHome: () -> Unit, date: java.time.LocalDate = java.time.LocalDate.now()) {
     val context = LocalContext.current
     val app = context.applicationContext as NbeckApp
-    val vm: GameViewModel = viewModel(key = mode.name, factory = GameViewModel.Factory(context.applicationContext as Application, mode))
+    val vm: GameViewModel = viewModel(key = "${mode.name}-$date", factory = GameViewModel.Factory(context.applicationContext as Application, mode, date))
     val ui by vm.ui.collectAsState()
     val s = LocalStrings.current
     val c = nb
@@ -154,7 +154,11 @@ fun GameScreen(mode: Mode, onBack: () -> Unit, onHome: () -> Unit) {
     ArenaBackground(parquet = false) {
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
             TopBar(
-                title = if (mode == Mode.DAILY) s.daily else s.free,
+                title = when {
+                    mode == Mode.FREE -> s.free
+                    date == java.time.LocalDate.now() -> s.daily
+                    else -> "${s.daily} · %02d.%02d".format(date.dayOfMonth, date.monthValue)
+                },
                 onBack = onBack,
             ) {
                 if (!ui.finished && !ui.loading) {
@@ -363,7 +367,11 @@ private fun SearchBar(
                 if (suggestions.isEmpty()) {
                     Text(s.noMatches, style = Type.body, color = c.text2, modifier = Modifier.padding(Space.l))
                 } else {
-                    LazyColumn {
+                    // Every new query starts at the top of the list — the list used to keep the scroll
+                    // position from the previous search, hiding the best (first) matches.
+                    val listState = rememberLazyListState()
+                    LaunchedEffect(suggestions) { listState.scrollToItem(0) }
+                    LazyColumn(state = listState) {
                         itemsIndexed(suggestions, key = { _, p -> p.id }) { _, p ->
                             SuggestionRow(p) {
                                 onPick(p)

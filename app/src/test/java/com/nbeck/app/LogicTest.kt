@@ -122,6 +122,21 @@ class StatsTest {
         s = s.record(Mode.DAILY, true, 3, d.plusDays(2))
         assertEquals(1, s.currentStreak)
     }
+    @Test fun archiveGame_countsButLeavesStreak() {
+        var s = ModeStats().record(Mode.DAILY, true, 3, d).record(Mode.DAILY, true, 2, d.plusDays(1))
+        s = s.record(Mode.DAILY, false, 8, d.minusDays(10), streak = false)
+        s = s.record(Mode.DAILY, true, 5, d.minusDays(9), streak = false)
+        assertEquals(4, s.played); assertEquals(3, s.wins)
+        assertEquals(2, s.currentStreak); assertEquals(2, s.maxStreak)
+        assertEquals(d.plusDays(1).toString(), s.lastDate)
+        assertEquals(1, s.dist[4])
+    }
+    @Test fun theme_followsSystemUntilChosen() {
+        assertEquals(com.nbeck.app.data.ThemeMode.SYSTEM, com.nbeck.app.data.effectiveThemeOf(com.nbeck.app.data.Settings()))
+        // Settings saved by older versions say DARK but were never chosen by the player.
+        assertEquals(com.nbeck.app.data.ThemeMode.SYSTEM, com.nbeck.app.data.effectiveThemeOf(com.nbeck.app.data.Settings(theme = com.nbeck.app.data.ThemeMode.DARK)))
+        assertEquals(com.nbeck.app.data.ThemeMode.LIGHT, com.nbeck.app.data.effectiveThemeOf(com.nbeck.app.data.Settings(theme = com.nbeck.app.data.ThemeMode.LIGHT, themeChosen = true)))
+    }
     @Test fun loss_resetsStreak_countsPlayed() {
         val s = ModeStats().record(Mode.FREE, true, 2, d).record(Mode.FREE, false, 8, d)
         assertEquals(2, s.played); assertEquals(1, s.wins); assertEquals(0, s.currentStreak); assertEquals(50, s.winPct)

@@ -27,7 +27,17 @@ data class ModeStats(
         return if (last >= today.minusDays(1)) currentStreak else 0
     }
 
-    fun record(mode: Mode, won: Boolean, guesses: Int, date: LocalDate): ModeStats {
+    /**
+     * [streak] = false for an archive daily (a past date): it counts toward played/wins/distribution
+     * but must not touch the daily streak, which is about playing each day as it happens.
+     */
+    fun record(mode: Mode, won: Boolean, guesses: Int, date: LocalDate, streak: Boolean = true): ModeStats {
+        if (!streak) return copy(
+            played = played + 1,
+            wins = wins + if (won) 1 else 0,
+            winGuessTotal = winGuessTotal + if (won) guesses else 0,
+            dist = if (won) dist.mapIndexed { i, v -> if (i == guesses - 1) v + 1 else v } else dist,
+        )
         val continues = when (mode) {
             Mode.FREE -> true
             Mode.DAILY -> lastDate != null && LocalDate.parse(lastDate) == date.minusDays(1)
