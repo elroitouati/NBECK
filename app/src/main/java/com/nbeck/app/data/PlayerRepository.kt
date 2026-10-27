@@ -16,6 +16,8 @@ import java.time.Instant
  * Player list: cached copy from the last successful download (filesDir/players.json), falling back
  * to the bundled assets/players.json on first launch without network. Refreshed at most once a day.
  */
+private const val OPEN_REFRESH_GAP = 10 * 60 * 1000L
+
 class PlayerRepository(private val context: Context, private val source: EspnSource = EspnSource()) {
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -46,7 +48,8 @@ class PlayerRepository(private val context: Context, private val source: EspnSou
         if (!force && !isStale) return false
         val known = _players.value.associateBy { it.id }
         val bundle = runCatching { source.fetchAll(known, ringIds()) }.getOrNull() ?: return false
-        val valid = bundle.players.filter { Teams.find(it.teamId) != null }
+        val fixes = corrections()
+        val valid = bundle.players.filter { Teams.find(it.teamId) != null }.map { p -> fixes[p.id]?.applyTo(p) ?: p }
         if (valid.size < 300) return false // partial outage — keep what we have
         val clean = bundle.copy(schema = PLAYER_SCHEMA, players = valid)
         withContext(Dispatchers.IO) {
@@ -70,6 +73,33 @@ class PlayerRepository(private val context: Context, private val source: EspnSou
         json.decodeFromString<Rings>(context.assets.open("rings.json").bufferedReader().use { it.readText() })
             .champions.values.flatten().toSet()
     }.getOrDefault(emptySet())
+
+    /** Hand-checked fixes (assets/corrections.json, built by tools/fetch_players.py); always win over ESPN. */
+    @kotlinx.serialization.Serializable
+    private class Correction(val country: String? = null, val birthDate: String? = null, val jersey: String? = null) {
+        fun applyTo(p: Player) = p.copy(
+            country = country ?: p.country,
+            birthDate = birthDate ?: p.birthDate,
+            jersey = jersey ?: p.jersey,
+        )
+    }
+
+    private fun corrections(): Map<String, Correction> = runCatching {
+        json.decodeFromString<Map<String, Correction>>(context.assets.open("corrections.json").bufferedReader().use { it.readText() })
+    }.getOrDefault(emptyMap())
+
+    /**
+     * Called whenever the app comes to the foreground. Refreshes from ESPN unless the last attempt
+     * was under [OPEN_REFRESH_GAP] ago (switching apps back and forth shouldn't re-download).
+     */
+    suspend fun refreshOnOpen() {
+        val now = System.currentTimeMillis()
+        if (now - lastOpenRefresh < OPEN_REFRESH_GAP) return
+        lastOpenRefresh = now
+        refresh(force = true)
+    }
+
+    @Volatile private var lastOpenRefresh = 0L
 
     fun byId(id: String): Player? = _players.value.firstOrNull { it.id == id }
 }

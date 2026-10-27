@@ -153,7 +153,7 @@ class GameViewModel(app: Application, private val mode: Mode, private val day: L
             val live = mode == Mode.FREE || today == LocalDate.now()
             stats = stats.with(mode, stats[mode].record(mode, won, guesses.size, today, streak = live))
             prefs.saveStats(stats)
-            game = FinishedGame(mode, won, results)
+            game = FinishedGame(mode, won, results, answer = _ui.value.answer, date = today, archive = !live)
         }
         val (newAch, earned) = Achievements.evaluate(ach, stats, game, LocalDate.now())
         ach = newAch

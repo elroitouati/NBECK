@@ -1,7 +1,9 @@
 package com.nbeck.app.game
 
 import kotlinx.serialization.Serializable
+import com.nbeck.app.data.Player
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 enum class Mode { DAILY, FREE }
 
@@ -76,6 +78,18 @@ enum class Achievement(val target: Int = 1) {
     WINS_100(100),
     ALL_TEAMS(30),
     GLOBETROTTER(15),
+    SECOND_TRY,
+    HOT_START,
+    FREE_STREAK_5(5),
+    FREE_WINS_25(25),
+    HISTORIAN(5),
+    BLUE_WHITE,
+    INTERNATIONAL_10(10),
+    ROOKIE_HUNTER,
+    OLD_SCHOOL,
+    RING_HUNTER,
+    UNDRAFTED,
+    NIGHT_OWL,
 }
 
 @Serializable
@@ -84,6 +98,10 @@ data class AchievementState(
     val teamsGuessed: Set<Int> = emptySet(),
     val countriesGuessed: Set<String> = emptySet(),
     val threeOrLessWins: Int = 0,
+    /** Finished past-date dailies (archive). */
+    val archiveFinished: Int = 0,
+    /** Wins where the secret player isn't from the USA. */
+    val internationalWins: Int = 0,
 ) {
     fun isUnlocked(a: Achievement) = a.name in unlocked
 
@@ -93,6 +111,10 @@ data class AchievementState(
         Achievement.ALL_TEAMS -> teamsGuessed.size
         Achievement.GLOBETROTTER -> countriesGuessed.size
         Achievement.FIRST_WIN -> stats.totalWins
+        Achievement.FREE_STREAK_5 -> stats.free.maxStreak
+        Achievement.FREE_WINS_25 -> stats.free.wins
+        Achievement.HISTORIAN -> archiveFinished
+        Achievement.INTERNATIONAL_10 -> internationalWins
         else -> if (isUnlocked(a)) 1 else 0
     }.coerceAtMost(a.target)
 }
@@ -101,7 +123,17 @@ data class FinishedGame(
     val mode: Mode,
     val won: Boolean,
     val results: List<GuessResult>,
+    val answer: Player? = null,
+    /** The day the game is for (age is measured on it). */
+    val date: LocalDate = LocalDate.now(),
+    /** A past date from the archive. */
+    val archive: Boolean = false,
+    /** Wall-clock time the game ended (for the late-night achievement). */
+    val endedAt: LocalDateTime = LocalDateTime.now(),
 )
+
+/** The most recent NBA draft: June of this year once the season has started, else last year's. */
+fun latestDraftYear(today: LocalDate): Int = if (today.monthValue >= 7) today.year else today.year - 1
 
 object Achievements {
 
@@ -118,6 +150,10 @@ object Achievements {
     ): Pair<AchievementState, List<Achievement>> {
         var state = s
         if (game != null && game.won && game.results.size <= 3) state = state.copy(threeOrLessWins = state.threeOrLessWins + 1)
+        if (game != null && game.archive) state = state.copy(archiveFinished = state.archiveFinished + 1)
+        if (game != null && game.won && game.answer?.country != null && game.answer.country != "USA") {
+            state = state.copy(internationalWins = state.internationalWins + 1)
+        }
         val earned = mutableListOf<Achievement>()
         fun check(a: Achievement, cond: Boolean) {
             if (cond && !state.isUnlocked(a)) earned += a
@@ -131,12 +167,27 @@ object Achievements {
         check(Achievement.WINS_100, stats.totalWins >= 100)
         check(Achievement.ALL_TEAMS, state.teamsGuessed.size >= 30)
         check(Achievement.GLOBETROTTER, state.countriesGuessed.size >= Achievement.GLOBETROTTER.target)
+        check(Achievement.FREE_STREAK_5, stats.free.maxStreak >= 5)
+        check(Achievement.FREE_WINS_25, stats.free.wins >= 25)
+        check(Achievement.HISTORIAN, state.archiveFinished >= Achievement.HISTORIAN.target)
+        check(Achievement.INTERNATIONAL_10, state.internationalWins >= Achievement.INTERNATIONAL_10.target)
         if (game != null && game.won) {
             val n = game.results.size
             check(Achievement.FIRST_TRY, n == 1)
             check(Achievement.THREE_POINTER, n <= 3)
             check(Achievement.BUZZER_BEATER, n == MAX_GUESSES)
             check(Achievement.NO_YELLOW, game.results.none { r -> r.cells.any { it.mark == Mark.YELLOW } })
+            check(Achievement.SECOND_TRY, n == 2)
+            check(Achievement.HOT_START, n > 1 && game.results.first().cells.count { it.mark == Mark.GREEN } >= 5)
+            check(Achievement.NIGHT_OWL, game.endedAt.hour < 5)
+            val a = game.answer
+            if (a != null) {
+                check(Achievement.BLUE_WHITE, a.country == "Israel")
+                check(Achievement.ROOKIE_HUNTER, a.draftYear != null && a.draftYear == latestDraftYear(game.date))
+                check(Achievement.OLD_SCHOOL, a.ageOn(game.date) >= 35)
+                check(Achievement.RING_HUNTER, a.ring)
+                check(Achievement.UNDRAFTED, a.draftYear == null)
+            }
         }
         if (earned.isEmpty()) return state to earned
         val stamp = today.toString()

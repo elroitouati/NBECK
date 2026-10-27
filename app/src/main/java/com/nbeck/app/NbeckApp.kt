@@ -29,10 +29,8 @@ class NbeckApp : Application(), ImageLoaderFactory {
         players = PlayerRepository(this)
         prefs = Prefs(this)
         feedback = Feedback(this, prefs, appScope)
-        appScope.launch {
-            players.load()
-            players.refresh()
-        }
+        // Load the cached/bundled roster right away; MainActivity.onStart refreshes it from ESPN.
+        appScope.launch { players.load() }
         runCatching { RefreshWorker.schedule(this) }
     }
 

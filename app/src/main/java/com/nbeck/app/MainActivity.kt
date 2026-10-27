@@ -72,6 +72,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    /** Every time the app is opened (or comes back to the foreground): pull fresh rosters from ESPN. */
+    override fun onStart() {
+        super.onStart()
+        val app = application as NbeckApp
+        app.appScope.launch { app.players.refreshOnOpen() }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),

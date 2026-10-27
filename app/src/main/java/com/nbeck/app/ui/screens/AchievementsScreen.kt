@@ -21,7 +21,19 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
+import androidx.compose.material.icons.rounded.Bedtime
 import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.Diamond
+import androidx.compose.material.icons.rounded.Elderly
+import androidx.compose.material.icons.rounded.FiberNew
+import androidx.compose.material.icons.rounded.FlightTakeoff
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.LooksTwo
+import androidx.compose.material.icons.rounded.RocketLaunch
+import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.Whatshot
 import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material.icons.rounded.GpsFixed
@@ -68,6 +80,18 @@ fun Achievement.icon(): ImageVector = when (this) {
     Achievement.WINS_10, Achievement.WINS_50, Achievement.WINS_100 -> Icons.Rounded.EmojiEvents
     Achievement.ALL_TEAMS -> Icons.Rounded.Flag
     Achievement.GLOBETROTTER -> Icons.Rounded.Public
+    Achievement.SECOND_TRY -> Icons.Rounded.LooksTwo
+    Achievement.HOT_START -> Icons.Rounded.RocketLaunch
+    Achievement.FREE_STREAK_5 -> Icons.Rounded.Whatshot
+    Achievement.FREE_WINS_25 -> Icons.Rounded.Shuffle
+    Achievement.HISTORIAN -> Icons.Rounded.History
+    Achievement.BLUE_WHITE -> Icons.Rounded.Star
+    Achievement.INTERNATIONAL_10 -> Icons.Rounded.FlightTakeoff
+    Achievement.ROOKIE_HUNTER -> Icons.Rounded.FiberNew
+    Achievement.OLD_SCHOOL -> Icons.Rounded.Elderly
+    Achievement.RING_HUNTER -> Icons.Rounded.Diamond
+    Achievement.UNDRAFTED -> Icons.AutoMirrored.Rounded.TrendingUp
+    Achievement.NIGHT_OWL -> Icons.Rounded.Bedtime
 }
 
 @Composable

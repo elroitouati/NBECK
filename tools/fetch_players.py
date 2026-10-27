@@ -26,28 +26,48 @@ FIRST_FINALS = 2004
 # ESPN team id -> is Eastern Conference
 EAST = {str(t): t in (2, 17, 18, 20, 28, 4, 5, 8, 11, 15, 1, 30, 14, 19, 27) for t in ESPN_TEAM_IDS}  # oldest active players debuted 2003
 
-# ESPN has no birthplace for these players; filled in by hand with the country they represent.
-# Only used when ESPN's own value is missing. The app keeps these on refresh (EspnSource reuses the
-# previous country when ESPN's is empty).
-COUNTRY_OVERRIDES = {
-    "4711294": "USA",        # Matas Buzelis
-    "4870562": "USA",        # Dominick Barlow
-    "4871145": "Australia",  # Josh Giddey
-    "4997528": "Serbia",     # Nikola Jovic
-    "4997538": "Croatia",    # Karlo Matkovic
-    "5104155": "France",     # Bilal Coulibaly
-    "5157587": "Australia",  # Rocco Zikarsky
-    "5159925": "Serbia",     # Nikola Topic
-    "5160992": "France",     # Alex Sarr
-    "5175647": "Spain",      # Hugo Gonzalez
-    "5211175": "France",     # Zaccharie Risacher
-    "5211176": "France",     # Tidjane Salaun
-    "5214637": "France",     # Noah Penda
-    "5214989": "Serbia",     # Bogoljub Markovic
-    "5217746": "China",      # Yang Hansen
-    "5242496": "France",     # Noa Essengue
-    "5242502": "Israel",     # Ben Saraf
-    "5279133": "France",     # Joan Beringer
+# Hand corrections, checked against Wikidata (linked by ESPN id) and the players' national teams.
+# Written to assets/corrections.json, which the app also applies after every refresh, so a wrong
+# ESPN value can never come back. "country" is the country the player represents.
+CORRECTIONS = {
+    # ESPN has no birthplace for these
+    "4711294": {"country": "USA"},        # Matas Buzelis
+    "4870562": {"country": "USA"},        # Dominick Barlow
+    "4871145": {"country": "Australia"},  # Josh Giddey
+    "4997528": {"country": "Serbia"},     # Nikola Jovic
+    "4997538": {"country": "Croatia"},    # Karlo Matkovic
+    "5104155": {"country": "France"},     # Bilal Coulibaly
+    "5157587": {"country": "Australia"},  # Rocco Zikarsky
+    "5159925": {"country": "Serbia"},     # Nikola Topic
+    "5160992": {"country": "France"},     # Alex Sarr
+    "5175647": {"country": "Spain"},      # Hugo Gonzalez
+    "5211175": {"country": "France"},     # Zaccharie Risacher
+    "5211176": {"country": "France"},     # Tidjane Salaun
+    "5214637": {"country": "France"},     # Noah Penda
+    "5214989": {"country": "Serbia"},     # Bogoljub Markovic
+    "5217746": {"country": "China"},      # Yang Hansen
+    "5242496": {"country": "France"},     # Noa Essengue
+    "5242502": {"country": "Israel"},     # Ben Saraf
+    "5279133": {"country": "France"},     # Joan Beringer
+}
+
+def load_corrections():
+    """CORRECTIONS + the ones found by the Wikidata check, keyed by ESPN id."""
+    out = {k: dict(v) for k, v in CORRECTIONS.items()}
+    for k, v in WIKIDATA_FIXES.items():
+        out.setdefault(k, {}).update(v)
+    return out
+
+# ESPN values that Wikidata (birth date, citizenship) and the national team contradict.
+WIKIDATA_FIXES = {
+    "4600663": {"birthDate": "2002-05-14"},                          # Zach Edey
+    "4683860": {"birthDate": "2003-09-04"},                          # Quadir Copeland
+    "5105337": {"birthDate": "2003-11-01"},                          # Maliq Brown
+    "4431679": {"country": "Nigeria"},                               # Precious Achiuwa (born Port Harcourt)
+    "4432827": {"country": "Democratic Republic of Congo"},          # Oscar Tshiebwe (born Lubumbashi)
+    "6478":    {"country": "Montenegro"},                            # Nikola Vucevic (Montenegro national team)
+    "4017837": {"country": "Croatia"},                               # Ivica Zubac (Croatia national team)
+    "4997537": {"country": "Serbia"},                                # Tristan Vukcevic (Serbia national team)
 }
 
 def get(url):
@@ -88,9 +108,32 @@ def team_players(tid):
             "position": position(a.get("position", {}).get("abbreviation")),
             "birthDate": dob,
             "jersey": jersey if jersey not in (None, "") else None,
-            "country": country_of(a.get("birthPlace")) or COUNTRY_OVERRIDES.get(str(a["id"])),
+            "country": country_of(a.get("birthPlace")),
             "headshot": (a.get("headshot") or {}).get("href"),
         })
+    return out
+
+def live_jerseys():
+    """{player id: jersey} from each team's most recent game (what was actually worn).
+
+    ESPN's player profiles lag behind number changes (Jamal Shead: profile 23, wears 1); the
+    game's lineup is right. Scoreboards from today backwards until every team has a game (max 7 days).
+    """
+    latest, day = {}, datetime.date.today()
+    for _ in range(7):
+        if len(latest) >= 30: break
+        for e in get(f"{SITE}/scoreboard?dates={day.strftime('%Y%m%d')}").get("events", []):
+            if not e["status"]["type"].get("completed"): continue
+            for c in e["competitions"][0]["competitors"]:
+                latest.setdefault(c["team"]["id"], e["id"])
+        day -= datetime.timedelta(1)
+    def lineup(item):
+        team, eid = item
+        r = get(f"{CORE}/events/{eid}/competitions/{eid}/competitors/{team}/roster")
+        return {(team, str(x["playerId"])): x.get("jersey") for x in r.get("entries", []) if x.get("jersey")}
+    out = {}
+    with cf.ThreadPoolExecutor(8) as ex:
+        for m in ex.map(lineup, latest.items()): out.update(m)
     return out
 
 def draft_year(pid):
@@ -170,6 +213,18 @@ def main():
     with cf.ThreadPoolExecutor(12) as ex:
         drafts = dict(zip([p["id"] for p in players], ex.map(draft_year, [p["id"] for p in players])))
     st = stats()
+    worn = live_jerseys()
+    fixes = load_corrections()
+    changed = []
+    for p in players:
+        j = worn.get((str(p["teamId"]), p["id"]))
+        if j and j != p["jersey"]:
+            changed.append(f'{p["name"]}: {p["jersey"]} -> {j}')
+            p["jersey"] = j
+        for k, v in fixes.get(p["id"], {}).items():
+            if p.get(k) != v: changed.append(f'{p["name"]}: {k} {p.get(k)} -> {v}')
+            p[k] = v
+    print("corrected:", *changed, sep="\n  ", file=sys.stderr)
     rings = ring_holders()
     ring_ids = {i for ids in rings.values() for i in ids}
     for p in players:
@@ -181,7 +236,9 @@ def main():
         sys.exit(f"only {len(players)} players — refusing to write")
     now = datetime.datetime.now(timezone.utc).isoformat(timespec="seconds")
     with open(os.path.join(ASSETS, "players.json"), "w", encoding="utf-8") as fh:
-        json.dump({"schema": 3, "source": "ESPN public API", "fetchedAt": now, "players": players}, fh, ensure_ascii=False, separators=(",", ":"))
+        json.dump({"schema": 4, "source": "ESPN public API", "fetchedAt": now, "players": players}, fh, ensure_ascii=False, separators=(",", ":"))
+    with open(os.path.join(ASSETS, "corrections.json"), "w", encoding="utf-8") as fh:
+        json.dump(fixes, fh, ensure_ascii=False, indent=1, sort_keys=True)
     with open(os.path.join(ASSETS, "rings.json"), "w", encoding="utf-8") as fh:
         json.dump({"fetchedAt": now, "champions": rings}, fh, separators=(",", ":"))
     from collections import Counter

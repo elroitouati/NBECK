@@ -21,8 +21,8 @@ android {
         applicationId = "com.nbeck.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 8
-        versionName = "1.4.0"
+        versionCode = 9
+        versionName = "1.5.0"
     }
 
     signingConfigs {
@@ -57,6 +57,7 @@ android {
         unitTests.all {
             // ./gradlew :app:testDebugUnitTest -Pscreenshots  -> renders screens to app/build/screenshots
             it.systemProperty("screenshots", project.hasProperty("screenshots").toString())
+            it.systemProperty("network", project.hasProperty("network").toString())
             it.systemProperty("roborazzi.test.record", "true")
             it.systemProperty("roborazzi.record.filePathStrategy", "relativePathFromRoborazziContextOutputDirectory")
         }

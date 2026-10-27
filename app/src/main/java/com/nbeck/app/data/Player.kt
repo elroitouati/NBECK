@@ -36,11 +36,11 @@ data class Player(
 
 @Serializable
 data class PlayerBundle(
-    /** Bumped when fields are added; older caches are ignored (v2: draft year and ring; v3: hand-filled countries). */
+    /** Bumped when fields are added; older caches are ignored (v2: draft year and ring; v3: hand-filled countries; v4: checked jerseys, dates, countries). */
     val schema: Int = 1,
     val source: String = "",
     val fetchedAt: String = "",
     val players: List<Player>,
 )
 
-const val PLAYER_SCHEMA = 3
+const val PLAYER_SCHEMA = 4

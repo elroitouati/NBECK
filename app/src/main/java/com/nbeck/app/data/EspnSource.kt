@@ -53,9 +53,16 @@ class EspnSource(
                     if (prev != null) prev.draftYear else gate.withPermit { draftYear(p.id) }
                 }
             }.awaitAll()
+            val worn = runCatching { liveJerseys() }.getOrDefault(emptyMap())
             val players = roster.zip(drafts) { p, draft ->
-                // ESPN lacks a birthplace for some international players; keep the hand-filled one.
-                p.copy(draftYear = draft, ring = p.id in ringIds, country = p.country ?: known[p.id]?.country)
+                p.copy(
+                    draftYear = draft,
+                    ring = p.id in ringIds,
+                    // The number worn in the team's latest game beats ESPN's (sometimes stale) profile.
+                    jersey = worn[p.teamId to p.id] ?: p.jersey,
+                    // ESPN lacks a birthplace for some international players; keep the previous one.
+                    country = p.country ?: known[p.id]?.country,
+                )
             }
                 .map { p -> st[p.id]?.let { p.copy(ppg = it.ppg, rpg = it.rpg, apg = it.apg, gp = it.gp) } ?: p }
                 .sortedBy { it.id }
@@ -90,6 +97,45 @@ class EspnSource(
                 headshot = a.obj("headshot")?.str("href"),
             )
         }
+    }
+
+    /**
+     * (team id, player id) -> jersey worn in that team's most recent game. ESPN player profiles lag
+     * behind number changes; the game lineup does not. Walks back up to 7 days of scoreboards until
+     * every team has a game, then reads each game's lineup (small core-API documents).
+     */
+    private suspend fun liveJerseys(): Map<Pair<Int, String>, String> = coroutineScope {
+        val latest = LinkedHashMap<Int, String>()
+        var day = java.time.LocalDate.now()
+        repeat(7) {
+            if (latest.size >= Teams.all.size) return@repeat
+            val board = runCatching { get("$SITE/scoreboard?dates=${day.format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE)}") }.getOrNull()
+            board?.arr("events")?.forEach { e ->
+                val ev = e.jsonObject
+                val done = ev.obj("status")?.obj("type")?.str("completed") == "true"
+                if (!done) return@forEach
+                val id = ev.str("id") ?: return@forEach
+                ev.arr("competitions").firstOrNull()?.jsonObject?.arr("competitors")?.forEach { c ->
+                    c.jsonObject.obj("team")?.str("id")?.toIntOrNull()?.let { latest.putIfAbsent(it, id) }
+                }
+            }
+            day = day.minusDays(1)
+        }
+        val gate = Semaphore(6)
+        latest.map { (team, event) ->
+            async {
+                gate.withPermit {
+                    runCatching {
+                        get("$CORE/events/$event/competitions/$event/competitors/$team/roster").arr("entries").mapNotNull { x ->
+                            val o = x.jsonObject
+                            val pid = o.str("playerId") ?: return@mapNotNull null
+                            val j = o.str("jersey")?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+                            (team to pid) to j
+                        }
+                    }.getOrDefault(emptyList())
+                }
+            }
+        }.awaitAll().flatten().toMap()
     }
 
     /** Absent "draft" on the athlete = undrafted. */
