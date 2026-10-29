@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "859243937060-5p295t6ncsvq42av7elf0mppcbknjh6f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nbeck.app",
+            "certificate_hash": "2dfa0ba56eb64acb22ae30d04e2e941888446263"
+          }
+        },
+        {
           "client_id": "859243937060-l5dh4nee8u4gm3mo2osid3lt67f9503t.apps.googleusercontent.com",
           "client_type": 3
         }
