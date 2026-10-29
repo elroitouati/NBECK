@@ -1,0 +1,56 @@
+// Firestore security rules for DNBA. Paste into Firebase console → Firestore → Rules → Publish.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function signedIn() { return request.auth != null; }
+    function isMe(uid) { return signedIn() && request.auth.uid == uid; }
+    // Only the display fields changed (rename / new favourite team / photo on/off).
+    function identityOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nickname', 'team', 'photo']);
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isMe(uid)
+        && request.resource.data.nickname is string
+        && request.resource.data.nickname.size() >= 2
+        && request.resource.data.nickname.size() <= 16;
+      allow delete: if isMe(uid);
+    }
+
+    // One document per nickname (lowercase) -> its owner, so nicknames are unique.
+    match /nicknames/{name} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && request.resource.data.uid == request.auth.uid
+        && (resource == null || resource.data.uid == request.auth.uid);
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // One result per player per day; can't be changed afterwards (except the display name).
+    match /daily/{date}/results/{uid} {
+      allow read: if signedIn();
+      allow create: if isMe(uid)
+        && request.resource.data.won is bool
+        && request.resource.data.guesses is int
+        && request.resource.data.guesses >= 1 && request.resource.data.guesses <= 8
+        && request.resource.data.points == (request.resource.data.won ? 11 - request.resource.data.guesses : 0)
+        && request.resource.data.seconds is int && request.resource.data.seconds >= 0
+        && request.resource.data.rank == (request.resource.data.won ? request.resource.data.guesses : 9) * 1000000
+             + request.resource.data.seconds;
+      allow update: if isMe(uid) && identityOnly();
+    }
+
+    // Monthly league: points may only grow by the points of a daily result created in the same write.
+    match /league/{month}/players/{uid} {
+      allow read: if signedIn();
+      allow update: if isMe(uid) && identityOnly();
+      allow create, update: if isMe(uid)
+        && !exists(/databases/$(db)/documents/daily/$(request.resource.data.lastDate)/results/$(uid))
+        && existsAfter(/databases/$(db)/documents/daily/$(request.resource.data.lastDate)/results/$(uid))
+        && request.resource.data.lastDate.matches(month + '-[0-9][0-9]')
+        && request.resource.data.points == (resource == null ? 0 : resource.data.points)
+             + getAfter(/databases/$(db)/documents/daily/$(request.resource.data.lastDate)/results/$(uid)).data.points
+        && request.resource.data.played == (resource == null ? 0 : resource.data.played) + 1;
+    }
+  }
+}

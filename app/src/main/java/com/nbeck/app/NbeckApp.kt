@@ -21,6 +21,7 @@ class NbeckApp : Application(), ImageLoaderFactory {
     lateinit var players: PlayerRepository
     lateinit var prefs: Prefs
     lateinit var feedback: Feedback
+    lateinit var online: com.nbeck.app.data.Online
     /** Newly unlocked achievements, shown as an animated toast over any screen. */
     val achievementEvents = MutableSharedFlow<List<Achievement>>(extraBufferCapacity = 4)
     /** Latest release found in the repo (null until checked). */
@@ -31,10 +32,13 @@ class NbeckApp : Application(), ImageLoaderFactory {
         players = PlayerRepository(this)
         prefs = Prefs(this)
         feedback = Feedback(this, prefs, appScope)
+        online = com.nbeck.app.data.Online(this)
+        appScope.launch { online.restore() }
         // Load the cached/bundled roster right away; MainActivity.onStart refreshes it from ESPN.
         appScope.launch { players.load() }
         runCatching { RefreshWorker.schedule(this) }
         runCatching { com.nbeck.app.data.Updates.schedule(this) }
+        runCatching { com.nbeck.app.data.ReminderWorker.schedule(this) }
     }
 
     /** Headshots are cached on disk so they keep working offline. */

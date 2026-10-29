@@ -118,6 +118,38 @@ interface Strings {
     val updateTitle: String
     val updateNow: String
     val later: String
+    val account: String
+    val signInTitle: String
+    val signInBody: String
+    val signInGoogle: String
+    val signInFailed: String
+    val signOut: String
+    val profileTitle: String
+    val nickname: String
+    val nicknameHint: String
+    val nicknameTaken: String
+    val nicknameInvalid: String
+    val favoriteTeam: String
+    val noTeam: String
+    val showPhoto: String
+    val save: String
+    val editProfile: String
+    val friendCode: String
+    val leaderboards: String
+    val leaderboardsSub: String
+    val todayTab: String
+    val leagueTab: String
+    val you: String
+    val noResultsToday: String
+    val noLeagueYet: String
+    val loadFailed: String
+    val retry: String
+    val pointsShort: String
+    val leagueRules: String
+    val dailyReminder: String
+    val dailyReminderSub: String
+    val gamesPlayed: String
+    fun leagueMonth(month: java.time.YearMonth): String
 }
 
 object He : Strings {
@@ -293,6 +325,39 @@ object He : Strings {
     override val updateTitle = "יש עדכון חדש!"
     override val updateNow = "עדכן עכשיו"
     override val later = "אחר כך"
+    override val account = "חשבון"
+    override val signInTitle = "התחבר כדי להתחרות"
+    override val signInBody = "עם חשבון אתה מופיע בטבלת האתגר היומי ובליגה החודשית מול כל השחקנים. המשחק עצמו ממשיך לעבוד גם בלי חשבון."
+    override val signInGoogle = "התחבר עם Google"
+    override val signInFailed = "ההתחברות לא הצליחה. נסה שוב"
+    override val signOut = "התנתק"
+    override val profileTitle = "הפרופיל שלך"
+    override val nickname = "כינוי"
+    override val nicknameHint = "2–16 תווים, כך יראו אותך בטבלאות"
+    override val nicknameTaken = "הכינוי הזה תפוס. נסה אחר"
+    override val nicknameInvalid = "כינוי של 2–16 אותיות, ספרות או רווחים"
+    override val favoriteTeam = "קבוצה אהובה"
+    override val noTeam = "בלי"
+    override val showPhoto = "הצג את תמונת הפרופיל שלי מ-Google"
+    override val save = "שמור"
+    override val editProfile = "ערוך פרופיל"
+    override val friendCode = "קוד חבר"
+    override val leaderboards = "טבלאות"
+    override val leaderboardsSub = "טבלת היום וליגה חודשית"
+    override val todayTab = "היום"
+    override val leagueTab = "ליגה"
+    override val you = "אתה"
+    override val noResultsToday = "עוד אף אחד לא סיים את האתגר של היום. תהיה הראשון!"
+    override val noLeagueYet = "הליגה של החודש עוד ריקה. כל אתגר יומי שתסיים מכניס נקודות"
+    override val loadFailed = "לא הצלחנו לטעון את הטבלה. בדוק חיבור לאינטרנט"
+    override val retry = "נסה שוב"
+    override val pointsShort = "נק'"
+    override val leagueRules = "ניצחון בניחוש 1 = 10 נק', כל ניחוש נוסף פחות 1, הפסד = 0. הטבלה מתאפסת בתחילת כל חודש"
+    override val dailyReminder = "תזכורת יומית"
+    override val dailyReminderSub = "ב-19:30, אם עוד לא שיחקת את היומי"
+    override val gamesPlayed = "משחקים"
+    override fun leagueMonth(month: java.time.YearMonth) =
+        "ליגת " + month.month.getDisplayName(java.time.format.TextStyle.FULL_STANDALONE, locale)
 }
 
 object En : Strings {
@@ -468,6 +533,39 @@ object En : Strings {
     override val updateTitle = "A new update is out!"
     override val updateNow = "Update now"
     override val later = "Later"
+    override val account = "Account"
+    override val signInTitle = "Sign in to compete"
+    override val signInBody = "With an account you appear in the daily table and the monthly league against everyone. The game itself keeps working without one."
+    override val signInGoogle = "Sign in with Google"
+    override val signInFailed = "Sign-in failed. Try again"
+    override val signOut = "Sign out"
+    override val profileTitle = "Your profile"
+    override val nickname = "Nickname"
+    override val nicknameHint = "2–16 characters, shown on the leaderboards"
+    override val nicknameTaken = "That nickname is taken. Try another"
+    override val nicknameInvalid = "2–16 letters, digits or spaces"
+    override val favoriteTeam = "Favorite team"
+    override val noTeam = "None"
+    override val showPhoto = "Show my Google profile photo"
+    override val save = "Save"
+    override val editProfile = "Edit profile"
+    override val friendCode = "Friend code"
+    override val leaderboards = "Leaderboards"
+    override val leaderboardsSub = "Today's table and the monthly league"
+    override val todayTab = "Today"
+    override val leagueTab = "League"
+    override val you = "You"
+    override val noResultsToday = "Nobody has finished today's challenge yet. Be the first!"
+    override val noLeagueYet = "This month's league is still empty. Every daily you finish scores points"
+    override val loadFailed = "Couldn't load the table. Check your connection"
+    override val retry = "Try again"
+    override val pointsShort = "pts"
+    override val leagueRules = "Win on guess 1 = 10 pts, one less per extra guess, loss = 0. Resets every month"
+    override val dailyReminder = "Daily reminder"
+    override val dailyReminderSub = "At 19:30 if you haven't played the daily"
+    override val gamesPlayed = "Played"
+    override fun leagueMonth(month: java.time.YearMonth) =
+        month.month.getDisplayName(java.time.format.TextStyle.FULL_STANDALONE, locale) + " league"
 }
 
 fun stringsFor(l: Language): Strings = if (l == Language.HE) He else En

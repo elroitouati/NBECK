@@ -109,3 +109,29 @@ class ReleaseManifestTest {
         assertTrue(r.notesHe.isNotEmpty() && r.notesEn.isNotEmpty())
     }
 }
+
+class OnlineRulesTest {
+    @Test fun leaguePoints() {
+        assertEquals(10, com.nbeck.app.data.Online.leaguePoints(true, 1))
+        assertEquals(3, com.nbeck.app.data.Online.leaguePoints(true, 8))
+        assertEquals(0, com.nbeck.app.data.Online.leaguePoints(false, 8))
+    }
+    @Test fun dailyRankOrder() {
+        val r = com.nbeck.app.data.Online::rankKey
+        assertTrue(r(true, 3, 500) < r(true, 4, 10))   // fewer guesses beats faster
+        assertTrue(r(true, 3, 40) < r(true, 3, 90))    // then time
+        assertTrue(r(true, 8, 999) < r(false, 1, 1))   // any win beats a loss
+        assertEquals(3_000_095L, r(true, 3, 95))       // matches firestore.rules
+    }
+    @Test fun nicknames() {
+        val ok = com.nbeck.app.data.Online::isValidNickname
+        assertTrue(ok("אלרואי")); assertTrue(ok("Elroi_23")); assertTrue(ok("Dr. J"))
+        assertFalse(ok("a")); assertFalse(ok("x".repeat(17))); assertFalse(ok("<script>")); assertFalse(ok("  "))
+    }
+    @Test fun friendCodeStable() {
+        val c = com.nbeck.app.data.Online.friendCodeFor("abc123")
+        assertEquals(6, c.length)
+        assertEquals(c, com.nbeck.app.data.Online.friendCodeFor("abc123"))
+    }
+    @Test fun monthKey() = assertEquals("2026-10", com.nbeck.app.data.Online.monthKey(LocalDate.of(2026, 10, 29)))
+}

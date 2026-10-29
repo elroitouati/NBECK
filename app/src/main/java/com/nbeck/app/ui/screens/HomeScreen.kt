@@ -27,6 +27,8 @@ import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Leaderboard
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
@@ -65,6 +67,8 @@ fun HomeScreen(
     onSettings: () -> Unit,
     onHowTo: () -> Unit,
     onArchive: () -> Unit,
+    onLeaderboards: () -> Unit = {},
+    onAccount: () -> Unit = {},
 ) {
     val app = LocalContext.current.applicationContext as NbeckApp
     val s = LocalStrings.current
@@ -80,7 +84,18 @@ fun HomeScreen(
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).heightIn(min = maxHeight).padding(horizontal = Space.gutter),
         ) {
-            Row(Modifier.fillMaxWidth().padding(top = Space.s), horizontalArrangement = Arrangement.End) {
+            val profile by app.online.profile.collectAsState()
+            Row(Modifier.fillMaxWidth().padding(top = Space.s), verticalAlignment = Alignment.CenterVertically) {
+                // Account: your avatar when signed in, otherwise a person icon.
+                Box(
+                    Modifier.size(48.dp).clip(CircleShape).background(c.surface1).border(1.dp, c.border, CircleShape).pressable(onClick = onAccount),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    val p = profile
+                    if (p != null) Avatar(p.nickname, p.team, p.photo, 44.dp)
+                    else Icon(Icons.Rounded.Person, s.account, tint = c.text1)
+                }
+                Spacer(Modifier.weight(1f))
                 RoundIcon(Icons.AutoMirrored.Rounded.HelpOutline, s.howTo, onHowTo)
                 Spacer(Modifier.width(Space.s))
                 RoundIcon(Icons.Rounded.Settings, s.settings, onSettings)
@@ -117,6 +132,11 @@ fun HomeScreen(
             ModeCard(
                 title = s.free, subtitle = s.freeSub, icon = Icons.Rounded.Shuffle, primary = false, badge = null,
                 onClick = { onPlay(Mode.FREE) },
+            )
+            Spacer(Modifier.height(Space.m))
+            ModeCard(
+                title = s.leaderboards, subtitle = s.leaderboardsSub, icon = Icons.Rounded.Leaderboard, primary = false, badge = null,
+                onClick = onLeaderboards,
             )
             Spacer(Modifier.height(Space.m))
             ModeCard(

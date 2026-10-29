@@ -142,7 +142,11 @@ class GameViewModel(app: Application, private val mode: Mode, private val day: L
     }
 
     private suspend fun persist(p: Player?, guesses: List<Player>, finished: Boolean, won: Boolean, results: List<GuessResult>) {
-        val g = (saved ?: return).copy(guessIds = guesses.map { it.id }, finished = finished, won = won)
+        val base = saved ?: return
+        val g = base.copy(
+            guessIds = guesses.map { it.id }, finished = finished, won = won,
+            startedAt = base.startedAt.takeIf { it > 0 } ?: System.currentTimeMillis(),
+        )
         var ach = prefs.achievements.first()
         if (p != null) ach = Achievements.afterGuess(ach, p.teamId, p.country)
         var stats = prefs.stats.first()
@@ -162,6 +166,14 @@ class GameViewModel(app: Application, private val mode: Mode, private val day: L
         saved = done
         prefs.saveGame(done)
         if (earned.isNotEmpty()) nb.achievementEvents.emit(earned)
+        if (record) {
+            // Today's daily goes to the online table and league (signed-in players only).
+            if (mode == Mode.DAILY && LocalDate.parse(g.date) == LocalDate.now()) {
+                val secs = ((System.currentTimeMillis() - g.startedAt) / 1000).toInt()
+                nb.online.submitDaily(LocalDate.parse(g.date), won, guesses.size.coerceAtLeast(1), secs)
+            }
+            nb.online.syncStats(stats, ach)
+        }
     }
 
     /** Free mode: a fresh random player. */

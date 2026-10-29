@@ -12,6 +12,21 @@ data class Release(
 object Changelog {
     val releases: List<Release> = listOf(
         Release(
+            13, "1.8.0", "2026-10-30",
+            he = listOf(
+                "כניסה עם חשבון Google ופרופיל: כינוי, קבוצה אהובה ותמונה",
+                "טבלת האתגר היומי של כל השחקנים",
+                "ליגה חודשית בנקודות",
+                "תזכורת יומית בערב אם עוד לא שיחקת",
+            ),
+            en = listOf(
+                "Sign in with Google and a profile: nickname, favorite team and photo",
+                "Today's challenge table with every player",
+                "Monthly points league",
+                "Evening reminder if you haven't played yet",
+            ),
+        ),
+        Release(
             12, "1.7.1", "2026-10-29",
             he = listOf("בכל כניסה: חלונית שמודיעה על עדכון חדש עם כפתור \"עדכן עכשיו\""),
             en = listOf("On open: a window announcing a new update, with an \"Update now\" button"),

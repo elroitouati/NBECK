@@ -5,6 +5,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
+    // Firebase (accounts, leaderboards). Config: app/google-services.json, project "dnba-c115d".
+    id("com.google.gms.google-services")
 }
 
 // Release signing reads keystore.properties at the project root (not committed). See README.md.
@@ -21,8 +23,8 @@ android {
         applicationId = "com.nbeck.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 12
-        versionName = "1.7.1"
+        versionCode = 13
+        versionName = "1.8.0"
     }
 
     signingConfigs {
@@ -89,6 +91,14 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
+
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0")
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")
