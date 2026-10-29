@@ -37,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -72,6 +73,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    private fun animationsEnabled() =
+        android.provider.Settings.Global.getFloat(contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f
+
     /** Every time the app is opened (or comes back to the foreground): pull fresh rosters from ESPN. */
     override fun onStart() {
         super.onStart()
@@ -94,10 +98,28 @@ class MainActivity : ComponentActivity() {
                 return@setContent
             }
             val dir = if (st.language == Language.HE) LayoutDirection.Rtl else LayoutDirection.Ltr
+            // Intro only on a fresh launch — not when coming back from the recent-apps list or after
+            // a rotation (savedInstanceState != null), and not when system animations are off.
+            var showIntro by rememberSaveable { mutableStateOf(savedInstanceState == null && animationsEnabled()) }
+            var whatsNew by remember { mutableStateOf<List<com.nbeck.app.data.Release>>(emptyList()) }
+            LaunchedEffect(Unit) {
+                val current = BuildConfig.VERSION_CODE
+                if (st.lastSeenVersion < current) {
+                    // A brand-new player gets the how-to, not a changelog.
+                    if (st.seenHowTo) whatsNew = com.nbeck.app.data.Changelog.since(st.lastSeenVersion).ifEmpty { com.nbeck.app.data.Changelog.releases.take(1) }
+                    app.prefs.updateSettings { it.copy(lastSeenVersion = current) }
+                }
+            }
             CompositionLocalProvider(LocalStrings provides stringsFor(st.language), LocalLayoutDirection provides dir) {
                 NbeckTheme(st.effectiveTheme) {
                     AppNav(showHowToFirst = !st.seenHowTo)
                     AchievementToastHost()
+                    if (whatsNew.isNotEmpty() && !showIntro) {
+                        com.nbeck.app.ui.screens.WhatsNewDialog(whatsNew.take(3)) { whatsNew = emptyList() }
+                    }
+                    if (showIntro) {
+                        com.nbeck.app.ui.components.IntroOverlay(onLand = { app.feedback.tick() }, onDone = { showIntro = false })
+                    }
                 }
             }
         }
@@ -153,7 +175,8 @@ private fun AppNav(showHowToFirst: Boolean) {
         }
         composable("stats") { StatsScreen(onBack = { nav.popBackStack() }, onPlay = { m -> nav.navigate("game/${m.name}") { popUpTo("home") } }) }
         composable("achievements") { AchievementsScreen(onBack = { nav.popBackStack() }) }
-        composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }) }
+        composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }, onVersions = { nav.navigate("versions") }) }
+        composable("versions") { com.nbeck.app.ui.screens.VersionsScreen(onBack = { nav.popBackStack() }) }
     }
 }
 

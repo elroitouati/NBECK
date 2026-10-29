@@ -106,6 +106,12 @@ interface Strings {
     val cancel: String
     val deleted: String
     val locale: java.util.Locale
+    fun whatsNewTitle(version: String): String
+    val gotIt: String
+    val updates: String
+    val currentVersion: String
+    val versionHistory: String
+    val installed: String
 }
 
 object He : Strings {
@@ -269,6 +275,12 @@ object He : Strings {
     override val cancel = "ביטול"
     override val deleted = "הנתונים נמחקו"
     override val locale: java.util.Locale = java.util.Locale.forLanguageTag("he")
+    override fun whatsNewTitle(version: String) = "מה חדש בגרסה $version"
+    override val gotIt = "יאללה"
+    override val updates = "עדכונים וגרסאות"
+    override val currentVersion = "הגרסה המותקנת"
+    override val versionHistory = "היסטוריית גרסאות"
+    override val installed = "מותקנת"
 }
 
 object En : Strings {
@@ -432,6 +444,12 @@ object En : Strings {
     override val cancel = "Cancel"
     override val deleted = "Your data was deleted"
     override val locale: java.util.Locale = java.util.Locale.ENGLISH
+    override fun whatsNewTitle(version: String) = "What's new in $version"
+    override val gotIt = "Let's go"
+    override val updates = "Updates & versions"
+    override val currentVersion = "Installed version"
+    override val versionHistory = "Version history"
+    override val installed = "Installed"
 }
 
 fun stringsFor(l: Language): Strings = if (l == Language.HE) He else En

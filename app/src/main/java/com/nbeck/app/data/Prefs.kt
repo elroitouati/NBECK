@@ -28,6 +28,8 @@ data class Settings(
     val sound: Boolean = true,
     val haptics: Boolean = true,
     val seenHowTo: Boolean = false,
+    /** versionCode whose "what's new" the player has seen; 0 = none yet (installs before 1.6.0). */
+    val lastSeenVersion: Int = 0,
 )
 
 /** Theme actually in effect: the system's until the player picks one in Settings. */

@@ -94,6 +94,36 @@ class ScreenshotTest {
         }
     }
 
+    @Test fun intro_frames() {
+        compose.mainClock.autoAdvance = false
+        compose.setContent {
+            CompositionLocalProvider(LocalStrings provides stringsFor(Language.HE), LocalLayoutDirection provides LayoutDirection.Rtl) {
+                NbeckTheme(ThemeMode.DARK) { com.nbeck.app.ui.components.IntroOverlay(onLand = {}, onDone = {}) }
+            }
+        }
+        var t = 0L
+        for (at in listOf(150L, 380L, 450L, 560L, 700L, 900L, 1100L)) {
+            compose.mainClock.advanceTimeBy(at - t); t = at
+            compose.onRoot().captureRoboImage("build/screenshots/intro_${at}ms.png")
+        }
+    }
+
+    @Test fun versions_he() = shot("12_versions_he") { com.nbeck.app.ui.screens.VersionsScreen({}) }
+
+    @OptIn(com.github.takahirom.roborazzi.ExperimentalRoborazziApi::class)
+    @Test fun whats_new_he() {
+        compose.setContent {
+            CompositionLocalProvider(LocalStrings provides stringsFor(Language.HE), LocalLayoutDirection provides LayoutDirection.Rtl) {
+                NbeckTheme(ThemeMode.DARK) {
+                    HomeScreen({}, {}, {}, {}, {}, {})
+                    com.nbeck.app.ui.screens.WhatsNewDialog(com.nbeck.app.data.Changelog.releases.take(1)) {}
+                }
+            }
+        }
+        compose.mainClock.advanceTimeBy(1500); compose.waitForIdle()
+        com.github.takahirom.roborazzi.captureScreenRoboImage("build/screenshots/13_whats_new_he.png")
+    }
+
     @Test fun home_he_dark() = shot("01_home_he_dark") { HomeScreen({}, {}, {}, {}, {}, {}) }
     @Test fun home_en_light() = shot("02_home_en_light", Language.EN, ThemeMode.LIGHT) { HomeScreen({}, {}, {}, {}, {}, {}) }
     @Test fun howto_he() = shot("03_howto_he") { HowToScreen({}, {}) }

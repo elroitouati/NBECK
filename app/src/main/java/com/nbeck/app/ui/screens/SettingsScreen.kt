@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import com.nbeck.app.NbeckApp
 import com.nbeck.app.data.Language
 import com.nbeck.app.data.Settings
@@ -48,7 +49,7 @@ import com.nbeck.app.ui.theme.nb
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(onBack: () -> Unit, onVersions: () -> Unit = {}) {
     val app = LocalContext.current.applicationContext as NbeckApp
     val s = LocalStrings.current
     val c = nb
@@ -87,6 +88,19 @@ fun SettingsScreen(onBack: () -> Unit) {
                         val ok = app.players.refresh(force = true)
                         refreshState = if (ok) s.refreshed else s.refreshFailed
                     }
+                }
+                Section(s.updates)
+                Row(
+                    Modifier.fillMaxWidth().heightIn(min = 64.dp).clip(RoundedCornerShape(Space.rCard)).background(c.surface1)
+                        .border(1.dp, c.border, RoundedCornerShape(Space.rCard)).pressable(onClick = onVersions).padding(horizontal = Space.l),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(s.versionHistory, style = Type.bodyStrong, color = c.text1)
+                        Text("${s.currentVersion}: ${com.nbeck.app.BuildConfig.VERSION_NAME}", style = Type.label.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Normal), color = c.text2)
+                    }
+                    // Auto-mirrored: points left in Hebrew, right in English.
+                    androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = c.text2)
                 }
                 Section(s.resetSection)
                 NbButton(

@@ -72,7 +72,7 @@
    ```
    הקובץ: `app/build/outputs/apk/release/app-release.apk`
 
-לגרסה חדשה: העלה את `versionCode` (ו-`versionName`) ב-`app/build.gradle.kts`, ובנה שוב עם אותו מפתח.
+לגרסה חדשה: העלה את `versionCode` (ו-`versionName`) ב-`app/build.gradle.kts`, **הוסף רשומה בראש `data/Changelog.kt`** (עם אותו `versionCode`) — היא מה שמוצג בחלונית "מה חדש" אחרי העדכון ובהיסטוריית הגרסאות בהגדרות — ובנה שוב עם אותו מפתח.
 
 ## התקנה אצל החברים (שליחה בוואטסאפ)
 
