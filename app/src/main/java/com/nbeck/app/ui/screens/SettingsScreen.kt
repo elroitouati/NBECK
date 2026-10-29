@@ -102,6 +102,17 @@ fun SettingsScreen(onBack: () -> Unit, onVersions: () -> Unit = {}) {
                     // Auto-mirrored: points left in Hebrew, right in English.
                     androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = c.text2)
                 }
+                val latest by app.latestRelease.collectAsState()
+                Spacer(Modifier.height(Space.s))
+                val ctx = LocalContext.current
+                val newer = latest?.takeIf { com.nbeck.app.data.Updates.isNewer(it) }
+                if (newer != null) {
+                    Text(s.updateAvailable(newer.versionName), style = Type.bodyStrong, color = c.accent)
+                    Spacer(Modifier.height(Space.s))
+                    NbButton(s.downloadUpdate, Modifier.fillMaxWidth()) { ctx.startActivity(com.nbeck.app.data.Updates.downloadIntent(newer)) }
+                } else if (latest != null) {
+                    Text(s.upToDate, style = Type.body, color = c.text2)
+                }
                 Section(s.resetSection)
                 NbButton(
                     deletedNote ?: s.deleteData, Modifier.fillMaxWidth(), kind = ButtonKind.GHOST,

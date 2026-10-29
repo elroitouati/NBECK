@@ -23,6 +23,8 @@ class NbeckApp : Application(), ImageLoaderFactory {
     lateinit var feedback: Feedback
     /** Newly unlocked achievements, shown as an animated toast over any screen. */
     val achievementEvents = MutableSharedFlow<List<Achievement>>(extraBufferCapacity = 4)
+    /** Latest release found in the repo (null until checked). */
+    val latestRelease = kotlinx.coroutines.flow.MutableStateFlow<com.nbeck.app.data.LatestRelease?>(null)
 
     override fun onCreate() {
         super.onCreate()
@@ -32,6 +34,7 @@ class NbeckApp : Application(), ImageLoaderFactory {
         // Load the cached/bundled roster right away; MainActivity.onStart refreshes it from ESPN.
         appScope.launch { players.load() }
         runCatching { RefreshWorker.schedule(this) }
+        runCatching { com.nbeck.app.data.Updates.schedule(this) }
     }
 
     /** Headshots are cached on disk so they keep working offline. */

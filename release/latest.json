@@ -1,0 +1,13 @@
+{
+ "versionCode": 11,
+ "versionName": "1.7.0",
+ "apk": "https://raw.githubusercontent.com/elroitouati/NBECK/HEAD/release/DNBA.apk",
+ "notesHe": [
+  "התראה כשיוצאת גרסה חדשה – לחיצה עליה מורידה אותה",
+  "בהגדרות: בדיקה אם יש גרסה חדשה"
+ ],
+ "notesEn": [
+  "A notification when a new version is out – tap it to download",
+  "Settings shows when a newer version is available"
+ ]
+}

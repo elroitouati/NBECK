@@ -1,0 +1,9 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="100" android:viewportHeight="100">
+    <!-- Status-bar icon: the DNBA "D" ball as a white silhouette with its seams cut out. -->
+    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd"
+        android:pathData="M5,1 H52 A47.5,49 0 0 1 52,99 H5 Q1,99 1,95 V5 Q1,1 5,1 Z
+        M11,1 H15 V99 H11 Z
+        M1,41 Q50,36 99,58 L99,62.5 Q50,40.5 1,45.5 Z" />
+</vector>

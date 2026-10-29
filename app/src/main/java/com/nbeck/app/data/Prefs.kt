@@ -30,6 +30,10 @@ data class Settings(
     val seenHowTo: Boolean = false,
     /** versionCode whose "what's new" the player has seen; 0 = none yet (installs before 1.6.0). */
     val lastSeenVersion: Int = 0,
+    /** Highest versionCode we already sent a "new version" notification for. */
+    val notifiedVersion: Int = 0,
+    /** Asked for the notification permission (Android 13+) once already. */
+    val askedNotifications: Boolean = false,
 )
 
 /** Theme actually in effect: the system's until the player picks one in Settings. */

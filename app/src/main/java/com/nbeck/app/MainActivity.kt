@@ -73,6 +73,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    /** Android 13+: notifications need runtime permission; asked once, after the first intro. */
+    private val notificationPermission =
+        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) (application as NbeckApp).appScope.launch { com.nbeck.app.data.Updates.check(this@MainActivity) }
+        }
+
     private fun animationsEnabled() =
         android.provider.Settings.Global.getFloat(contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f
 
@@ -81,6 +87,7 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         val app = application as NbeckApp
         app.appScope.launch { app.players.refreshOnOpen() }
+        app.appScope.launch { com.nbeck.app.data.Updates.check(app) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -108,6 +115,12 @@ class MainActivity : ComponentActivity() {
                     // A brand-new player gets the how-to, not a changelog.
                     if (st.seenHowTo) whatsNew = com.nbeck.app.data.Changelog.since(st.lastSeenVersion).ifEmpty { com.nbeck.app.data.Changelog.releases.take(1) }
                     app.prefs.updateSettings { it.copy(lastSeenVersion = current) }
+                }
+            }
+            LaunchedEffect(showIntro) {
+                if (!showIntro && android.os.Build.VERSION.SDK_INT >= 33 && !st.askedNotifications) {
+                    app.prefs.updateSettings { it.copy(askedNotifications = true) }
+                    notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
                 }
             }
             CompositionLocalProvider(LocalStrings provides stringsFor(st.language), LocalLayoutDirection provides dir) {

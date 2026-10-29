@@ -72,6 +72,8 @@
    ```
    הקובץ: `app/build/outputs/apk/release/app-release.apk`
 
+**פרסום גרסה (כדי שהחברים יקבלו התראה):** אחרי הבנייה הרץ `python3 tools/publish_release.py` ועשה commit + push ל-`release/`. האפליקציה בודקת את `release/latest.json` במאגר בכל פתיחה ופעם בכמה שעות ברקע; אם יש בו `versionCode` גבוה יותר, היא שולחת התראה שלחיצה עליה מורידה את `release/DNBA.apk`. (גרסאות לפני 1.7.0 לא יודעות לבדוק — צריך להתקין את 1.7.0 ידנית פעם אחת.)
+
 לגרסה חדשה: העלה את `versionCode` (ו-`versionName`) ב-`app/build.gradle.kts`, **הוסף רשומה בראש `data/Changelog.kt`** (עם אותו `versionCode`) — היא מה שמוצג בחלונית "מה חדש" אחרי העדכון ובהיסטוריית הגרסאות בהגדרות — ובנה שוב עם אותו מפתח.
 
 ## התקנה אצל החברים (שליחה בוואטסאפ)

@@ -112,6 +112,9 @@ interface Strings {
     val currentVersion: String
     val versionHistory: String
     val installed: String
+    fun updateAvailable(version: String): String
+    val downloadUpdate: String
+    val upToDate: String
 }
 
 object He : Strings {
@@ -281,6 +284,9 @@ object He : Strings {
     override val currentVersion = "הגרסה המותקנת"
     override val versionHistory = "היסטוריית גרסאות"
     override val installed = "מותקנת"
+    override fun updateAvailable(version: String) = "גרסה חדשה זמינה: $version"
+    override val downloadUpdate = "הורד והתקן"
+    override val upToDate = "יש לך את הגרסה האחרונה"
 }
 
 object En : Strings {
@@ -450,6 +456,9 @@ object En : Strings {
     override val currentVersion = "Installed version"
     override val versionHistory = "Version history"
     override val installed = "Installed"
+    override fun updateAvailable(version: String) = "New version available: $version"
+    override val downloadUpdate = "Download and install"
+    override val upToDate = "You have the latest version"
 }
 
 fun stringsFor(l: Language): Strings = if (l == Language.HE) He else En

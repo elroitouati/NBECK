@@ -97,3 +97,15 @@ class BundledDataTest {
         assertTrue("every player has a country", players.values.all { it.country != null })
     }
 }
+
+class ReleaseManifestTest {
+    /** release/latest.json must describe this build, or installed apps won't hear about it. */
+    @Test fun manifestMatchesThisVersion() {
+        val f = java.io.File("../release/latest.json")
+        val r = kotlinx.serialization.json.Json.decodeFromString(com.nbeck.app.data.LatestRelease.serializer(), f.readText())
+        assertEquals(BuildConfig.VERSION_CODE, r.versionCode)
+        assertEquals(BuildConfig.VERSION_NAME, r.versionName)
+        assertEquals(com.nbeck.app.data.Changelog.releases.first().code, r.versionCode)
+        assertTrue(r.notesHe.isNotEmpty() && r.notesEn.isNotEmpty())
+    }
+}
