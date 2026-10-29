@@ -153,13 +153,17 @@ fun SignInCard(modifier: Modifier = Modifier) {
             val activity = ctx.findActivity() ?: return@NbButton
             busy = true; error = null
             scope.launch {
-                runCatching { app.online.signIn(activity) }.onFailure { error = s.signInFailed }
+                runCatching { app.online.signIn(activity) }.onFailure { e ->
+                    android.util.Log.w("DNBA", "sign-in failed", e)
+                    // Technical detail under the friendly message, so a screenshot tells us what broke.
+                    error = s.signInFailed + "\n" + (e::class.simpleName ?: "Error") + ": " + (e.message ?: "").take(160)
+                }
                 busy = false
             }
         }
         if (error != null) {
             Spacer(Modifier.height(Space.s))
-            Text(error!!, style = Type.label, color = Color(0xFFE5484D))
+            Text(error!!, style = Type.label, color = Color(0xFFE5484D), textAlign = TextAlign.Center)
         }
     }
 }

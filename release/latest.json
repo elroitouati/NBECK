@@ -1,17 +1,11 @@
 {
- "versionCode": 13,
- "versionName": "1.8.0",
+ "versionCode": 14,
+ "versionName": "1.8.1",
  "apk": "https://raw.githubusercontent.com/elroitouati/NBECK/HEAD/release/DNBA.apk",
  "notesHe": [
-  "כניסה עם חשבון Google ופרופיל: כינוי, קבוצה אהובה ותמונה",
-  "טבלת האתגר היומי של כל השחקנים",
-  "ליגה חודשית בנקודות",
-  "תזכורת יומית בערב אם עוד לא שיחקת"
+  "פרטי שגיאה כשההתחברות נכשלת"
  ],
  "notesEn": [
-  "Sign in with Google and a profile: nickname, favorite team and photo",
-  "Today's challenge table with every player",
-  "Monthly points league",
-  "Evening reminder if you haven't played yet"
+  "Error details when sign-in fails"
  ]
 }
