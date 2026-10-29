@@ -149,6 +149,7 @@ interface Strings {
     val dailyReminder: String
     val dailyReminderSub: String
     val gamesPlayed: String
+    val profileLoadFailed: String
     fun leagueMonth(month: java.time.YearMonth): String
 }
 
@@ -356,6 +357,7 @@ object He : Strings {
     override val dailyReminder = "תזכורת יומית"
     override val dailyReminderSub = "ב-19:30, אם עוד לא שיחקת את היומי"
     override val gamesPlayed = "משחקים"
+    override val profileLoadFailed = "התחברת, אבל לא הצלחנו לטעון את הפרופיל"
     override fun leagueMonth(month: java.time.YearMonth) =
         "ליגת " + month.month.getDisplayName(java.time.format.TextStyle.FULL_STANDALONE, locale)
 }
@@ -564,6 +566,7 @@ object En : Strings {
     override val dailyReminder = "Daily reminder"
     override val dailyReminderSub = "At 19:30 if you haven't played the daily"
     override val gamesPlayed = "Played"
+    override val profileLoadFailed = "You're signed in, but the profile couldn't be loaded"
     override fun leagueMonth(month: java.time.YearMonth) =
         month.month.getDisplayName(java.time.format.TextStyle.FULL_STANDALONE, locale) + " league"
 }

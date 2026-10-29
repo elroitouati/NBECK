@@ -80,14 +80,29 @@ class Online(private val context: Context) {
     private val _needsProfile = MutableStateFlow(false)
     val needsProfile: StateFlow<Boolean> = _needsProfile
 
+    /** Signed-in uid as observable state, so screens switch as soon as Google sign-in succeeds. */
+    private val _signedIn = MutableStateFlow(auth?.currentUser?.uid)
+    val signedIn: StateFlow<String?> = _signedIn
+
+    /** Signed in, but the profile couldn't be read (offline, or server rules refused). */
+    private val _profileError = MutableStateFlow<String?>(null)
+    val profileError: StateFlow<String?> = _profileError
+
     val uid: String? get() = auth?.currentUser?.uid
     val googlePhoto: String? get() = auth?.currentUser?.photoUrl?.toString()
     val googleName: String? get() = auth?.currentUser?.displayName
 
     /** Loads the profile of an already signed-in user (app start). */
     suspend fun restore() {
+        _signedIn.value = uid
         if (uid == null) return
-        runCatching { loadProfile() }
+        reloadProfile()
+    }
+
+    /** Reads the profile; failures are kept in [profileError] instead of being thrown. */
+    suspend fun reloadProfile() {
+        runCatching { loadProfile(); _profileError.value = null }
+            .onFailure { e -> _profileError.value = (e::class.simpleName ?: "Error") + ": " + (e.message ?: "").take(160) }
     }
 
     /** Google sign-in via Credential Manager, then Firebase. Throws on cancel/failure. */
@@ -99,7 +114,8 @@ class Online(private val context: Context) {
         require(cred is CustomCredential && cred.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) { "Unexpected credential" }
         val idToken = GoogleIdTokenCredential.createFrom(cred.data).idToken
         a.signInWithCredential(GoogleAuthProvider.getCredential(idToken, null)).await()
-        loadProfile()
+        _signedIn.value = a.currentUser?.uid
+        reloadProfile()
     }
 
     suspend fun signOut(activity: Activity) {
@@ -107,6 +123,8 @@ class Online(private val context: Context) {
         runCatching { CredentialManager.create(activity).clearCredentialState(androidx.credentials.ClearCredentialStateRequest()) }
         _profile.value = null
         _needsProfile.value = false
+        _signedIn.value = null
+        _profileError.value = null
     }
 
     private suspend fun loadProfile() {

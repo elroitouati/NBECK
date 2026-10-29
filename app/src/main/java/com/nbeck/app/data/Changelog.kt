@@ -12,6 +12,11 @@ data class Release(
 object Changelog {
     val releases: List<Release> = listOf(
         Release(
+            15, "1.8.2", "2026-10-30",
+            he = listOf("תיקון: אחרי התחברות מוצלחת עוברים מיד לפרופיל, ובעיה בטעינתו מוצגת עם \"נסה שוב\""),
+            en = listOf("Fix: after a successful sign-in you go straight to the profile; a load problem shows \"Try again\""),
+        ),
+        Release(
             14, "1.8.1", "2026-10-30",
             he = listOf("פרטי שגיאה כשההתחברות נכשלת"),
             en = listOf("Error details when sign-in fails"),

@@ -113,6 +113,8 @@ fun AccountScreen(onBack: () -> Unit) {
     val s = LocalStrings.current
     val profile by online.profile.collectAsState()
     val needsProfile by online.needsProfile.collectAsState()
+    val signedIn by online.signedIn.collectAsState()
+    val profileError by online.profileError.collectAsState()
     var editing by rememberSaveable { mutableStateOf(false) }
 
     ArenaBackground(parquet = false) {
@@ -120,14 +122,35 @@ fun AccountScreen(onBack: () -> Unit) {
             TopBar(s.account, onBack)
             Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = Space.gutter)) {
                 when {
-                    online.uid == null -> SignInCard()
+                    signedIn == null -> SignInCard()
                     needsProfile || editing -> ProfileForm(profile) { editing = false }
                     profile != null -> MyProfile(profile!!, onEdit = { editing = true })
+                    profileError != null -> ProfileErrorCard(profileError!!)
                     else -> Text(s.loading, style = Type.body, color = nb.text2)
                 }
                 Spacer(Modifier.height(Space.xxl))
             }
         }
+    }
+}
+
+/** Signed in with Google, but the profile couldn't be loaded — say so and offer a retry. */
+@Composable
+private fun ProfileErrorCard(detail: String) {
+    val c = nb
+    val s = LocalStrings.current
+    val app = LocalContext.current.applicationContext as NbeckApp
+    val scope = rememberCoroutineScope()
+    val shape = RoundedCornerShape(Space.rCard)
+    Column(
+        Modifier.fillMaxWidth().clip(shape).background(c.surface1).border(1.dp, c.border, shape).padding(Space.xl),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(s.profileLoadFailed, style = Type.title, color = c.text1, textAlign = TextAlign.Center)
+        Spacer(Modifier.height(Space.s))
+        Text(detail, style = Type.label, color = Color(0xFFE5484D), textAlign = TextAlign.Center)
+        Spacer(Modifier.height(Space.l))
+        NbButton(s.retry, Modifier.fillMaxWidth(), kind = ButtonKind.SECONDARY) { scope.launch { app.online.reloadProfile() } }
     }
 }
 
@@ -376,6 +399,7 @@ fun LeaderboardScreen(onBack: () -> Unit, onAccount: () -> Unit) {
     val s = LocalStrings.current
     val app = LocalContext.current.applicationContext as NbeckApp
     val profile by app.online.profile.collectAsState()
+    val signedIn by app.online.signedIn.collectAsState()
     var tab by rememberSaveable { mutableStateOf(0) }
     var rows by remember { mutableStateOf<List<BoardRow>?>(null) }
     var failed by remember { mutableStateOf(false) }
@@ -400,8 +424,8 @@ fun LeaderboardScreen(onBack: () -> Unit, onAccount: () -> Unit) {
                 Spacer(Modifier.height(Space.m))
             }
             when {
-                app.online.uid == null || profile == null -> Column(Modifier.padding(horizontal = Space.gutter)) {
-                    if (app.online.uid == null) SignInCard() else NbButton(s.profileTitle, Modifier.fillMaxWidth(), onClick = onAccount)
+                signedIn == null || profile == null -> Column(Modifier.padding(horizontal = Space.gutter)) {
+                    if (signedIn == null) SignInCard() else NbButton(s.profileTitle, Modifier.fillMaxWidth(), onClick = onAccount)
                 }
                 failed -> Column(Modifier.fillMaxWidth().padding(Space.xl), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(s.loadFailed, style = Type.body, color = c.text2, textAlign = TextAlign.Center)
