@@ -12,6 +12,11 @@ data class Release(
 object Changelog {
     val releases: List<Release> = listOf(
         Release(
+            12, "1.7.1", "2026-10-29",
+            he = listOf("בכל כניסה: חלונית שמודיעה על עדכון חדש עם כפתור \"עדכן עכשיו\""),
+            en = listOf("On open: a window announcing a new update, with an \"Update now\" button"),
+        ),
+        Release(
             11, "1.7.0", "2026-10-29",
             he = listOf(
                 "התראה כשיוצאת גרסה חדשה – לחיצה עליה מורידה אותה",

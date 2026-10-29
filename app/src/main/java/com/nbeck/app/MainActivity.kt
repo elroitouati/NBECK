@@ -130,6 +130,18 @@ class MainActivity : ComponentActivity() {
                     if (whatsNew.isNotEmpty() && !showIntro) {
                         com.nbeck.app.ui.screens.WhatsNewDialog(whatsNew.take(3)) { whatsNew = emptyList() }
                     }
+                    // Newer version in the repo: offer it on every open (after the intro and any
+                    // "what's new"), until installed. "Later" hides it for this session only.
+                    val latest by app.latestRelease.collectAsState()
+                    var updateDismissed by rememberSaveable { mutableStateOf(false) }
+                    val update = latest?.takeIf { com.nbeck.app.data.Updates.isNewer(it) }
+                    if (update != null && !updateDismissed && !showIntro && whatsNew.isEmpty()) {
+                        com.nbeck.app.ui.screens.UpdateAvailableDialog(
+                            update,
+                            onUpdate = { updateDismissed = true; startActivity(com.nbeck.app.data.Updates.downloadIntent(update)) },
+                            onLater = { updateDismissed = true },
+                        )
+                    }
                     if (showIntro) {
                         com.nbeck.app.ui.components.IntroOverlay(onLand = { app.feedback.tick() }, onDone = { showIntro = false })
                     }

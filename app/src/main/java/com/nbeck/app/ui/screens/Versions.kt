@@ -131,3 +131,37 @@ private fun Bullet(text: String) {
         Text(text, style = Type.body, color = c.text1, modifier = Modifier.weight(1f))
     }
 }
+
+/** On open, when the repo has a newer version: its notes, "Update now" (downloads the APK) and "Later". */
+@Composable
+fun UpdateAvailableDialog(release: com.nbeck.app.data.LatestRelease, onUpdate: () -> Unit, onLater: () -> Unit) {
+    val c = nb
+    val s = LocalStrings.current
+    val shape = RoundedCornerShape(Space.rPanel)
+    Dialog(onDismissRequest = onLater) {
+        Column(
+            Modifier.fillMaxWidth().clip(shape).background(c.surface1).border(1.dp, c.accent.copy(alpha = 0.6f), shape).padding(Space.xl),
+        ) {
+            Text(s.updateTitle, style = Type.h2, color = c.text1)
+            Spacer(Modifier.height(Space.s))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.clip(RoundedCornerShape(8.dp)).background(c.board).padding(horizontal = Space.s, vertical = 2.dp)) {
+                    LedText(release.versionName, style = Type.led.copy(fontSize = 18.sp, lineHeight = 20.sp))
+                }
+                Spacer(Modifier.width(Space.s))
+                Text("${s.currentVersion}: ${BuildConfig.VERSION_NAME}", style = Type.label.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Normal), color = c.text2)
+            }
+            val notes = if (s === He) release.notesHe else release.notesEn
+            if (notes.isNotEmpty()) {
+                Spacer(Modifier.height(Space.l))
+                Column(Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(Space.s)) {
+                    notes.forEach { Bullet(it) }
+                }
+            }
+            Spacer(Modifier.height(Space.xl))
+            NbButton(s.updateNow, Modifier.fillMaxWidth(), onClick = onUpdate)
+            Spacer(Modifier.height(Space.s))
+            NbButton(s.later, Modifier.fillMaxWidth(), kind = com.nbeck.app.ui.components.ButtonKind.GHOST, onClick = onLater)
+        }
+    }
+}

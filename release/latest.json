@@ -1,13 +1,11 @@
 {
- "versionCode": 11,
- "versionName": "1.7.0",
+ "versionCode": 12,
+ "versionName": "1.7.1",
  "apk": "https://raw.githubusercontent.com/elroitouati/NBECK/HEAD/release/DNBA.apk",
  "notesHe": [
-  "התראה כשיוצאת גרסה חדשה – לחיצה עליה מורידה אותה",
-  "בהגדרות: בדיקה אם יש גרסה חדשה"
+  "בכל כניסה: חלונית שמודיעה על עדכון חדש עם כפתור \"עדכן עכשיו\""
  ],
  "notesEn": [
-  "A notification when a new version is out – tap it to download",
-  "Settings shows when a newer version is available"
+  "On open: a window announcing a new update, with an \"Update now\" button"
  ]
 }

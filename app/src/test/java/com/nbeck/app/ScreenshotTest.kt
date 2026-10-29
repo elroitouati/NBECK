@@ -124,6 +124,24 @@ class ScreenshotTest {
         com.github.takahirom.roborazzi.captureScreenRoboImage("build/screenshots/13_whats_new_he.png")
     }
 
+    @OptIn(com.github.takahirom.roborazzi.ExperimentalRoborazziApi::class)
+    @Test fun update_available_he() {
+        compose.setContent {
+            CompositionLocalProvider(LocalStrings provides stringsFor(Language.HE), LocalLayoutDirection provides LayoutDirection.Rtl) {
+                NbeckTheme(ThemeMode.DARK) {
+                    HomeScreen({}, {}, {}, {}, {}, {})
+                    com.nbeck.app.ui.screens.UpdateAvailableDialog(
+                        com.nbeck.app.data.LatestRelease(99, "1.8.0", "https://example.invalid/DNBA.apk",
+                            notesHe = listOf("אנימציה חדשה בניצחון", "תיקוני באגים")),
+                        onUpdate = {}, onLater = {},
+                    )
+                }
+            }
+        }
+        compose.mainClock.advanceTimeBy(1500); compose.waitForIdle()
+        com.github.takahirom.roborazzi.captureScreenRoboImage("build/screenshots/14_update_he.png")
+    }
+
     @Test fun home_he_dark() = shot("01_home_he_dark") { HomeScreen({}, {}, {}, {}, {}, {}) }
     @Test fun home_en_light() = shot("02_home_en_light", Language.EN, ThemeMode.LIGHT) { HomeScreen({}, {}, {}, {}, {}, {}) }
     @Test fun howto_he() = shot("03_howto_he") { HowToScreen({}, {}) }
