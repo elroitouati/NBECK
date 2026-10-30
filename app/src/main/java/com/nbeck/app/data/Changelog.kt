@@ -12,29 +12,9 @@ data class Release(
 object Changelog {
     val releases: List<Release> = listOf(
         Release(
-            15, "1.8.2", "2026-10-30",
-            he = listOf("תיקון: אחרי התחברות מוצלחת עוברים מיד לפרופיל, ובעיה בטעינתו מוצגת עם \"נסה שוב\""),
-            en = listOf("Fix: after a successful sign-in you go straight to the profile; a load problem shows \"Try again\""),
-        ),
-        Release(
-            14, "1.8.1", "2026-10-30",
-            he = listOf("פרטי שגיאה כשההתחברות נכשלת"),
-            en = listOf("Error details when sign-in fails"),
-        ),
-        Release(
-            13, "1.8.0", "2026-10-30",
-            he = listOf(
-                "כניסה עם חשבון Google ופרופיל: כינוי, קבוצה אהובה ותמונה",
-                "טבלת האתגר היומי של כל השחקנים",
-                "ליגה חודשית בנקודות",
-                "תזכורת יומית בערב אם עוד לא שיחקת",
-            ),
-            en = listOf(
-                "Sign in with Google and a profile: nickname, favorite team and photo",
-                "Today's challenge table with every player",
-                "Monthly points league",
-                "Evening reminder if you haven't played yet",
-            ),
+            16, "1.9.0", "2026-10-30",
+            he = listOf("הוסרו החשבונות, הטבלאות והתזכורת היומית – חזרה למשחק כמו בגרסה 1.7.1"),
+            en = listOf("Accounts, leaderboards and the daily reminder removed – back to the game as in 1.7.1"),
         ),
         Release(
             12, "1.7.1", "2026-10-29",

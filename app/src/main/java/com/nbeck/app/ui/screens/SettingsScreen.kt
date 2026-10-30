@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -50,7 +49,7 @@ import com.nbeck.app.ui.theme.nb
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsScreen(onBack: () -> Unit, onVersions: () -> Unit = {}, onAccount: () -> Unit = {}) {
+fun SettingsScreen(onBack: () -> Unit, onVersions: () -> Unit = {}) {
     val app = LocalContext.current.applicationContext as NbeckApp
     val s = LocalStrings.current
     val c = nb
@@ -80,23 +79,6 @@ fun SettingsScreen(onBack: () -> Unit, onVersions: () -> Unit = {}, onAccount: (
                 Toggle(s.sounds, settings.sound) { v -> update { it.copy(sound = v) } }
                 Spacer(Modifier.height(Space.s))
                 Toggle(s.haptics, settings.haptics) { v -> update { it.copy(haptics = v) } }
-                Spacer(Modifier.height(Space.s))
-                Toggle(s.dailyReminder, settings.dailyReminder) { v -> update { it.copy(dailyReminder = v) } }
-                Section(s.account)
-                val profile by app.online.profile.collectAsState()
-                Row(
-                    Modifier.fillMaxWidth().heightIn(min = 64.dp).clip(RoundedCornerShape(Space.rCard)).background(c.surface1)
-                        .border(1.dp, c.border, RoundedCornerShape(Space.rCard)).pressable(onClick = onAccount).padding(horizontal = Space.l),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    val p = profile
-                    if (p != null) {
-                        com.nbeck.app.ui.screens.Avatar(p.nickname, p.team, p.photo, 36.dp)
-                        Spacer(Modifier.width(Space.m))
-                    }
-                    Text(p?.nickname ?: s.signInGoogle, style = Type.bodyStrong, color = c.text1, modifier = Modifier.weight(1f))
-                    androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = c.text2)
-                }
                 Section(s.dataSection)
                 Text(s.dataInfo(players.size), style = Type.body, color = c.text2)
                 Spacer(Modifier.height(Space.m))

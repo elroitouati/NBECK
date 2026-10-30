@@ -11,4 +11,3 @@ captures/
 keystore.properties
 *.jks
 *.keystore
-node_modules/

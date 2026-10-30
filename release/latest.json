@@ -1,11 +1,11 @@
 {
- "versionCode": 15,
- "versionName": "1.8.2",
+ "versionCode": 16,
+ "versionName": "1.9.0",
  "apk": "https://raw.githubusercontent.com/elroitouati/NBECK/HEAD/release/DNBA.apk",
  "notesHe": [
-  "תיקון: אחרי התחברות מוצלחת עוברים מיד לפרופיל, ובעיה בטעינתו מוצגת עם \"נסה שוב\""
+  "הוסרו החשבונות, הטבלאות והתזכורת היומית – חזרה למשחק כמו בגרסה 1.7.1"
  ],
  "notesEn": [
-  "Fix: after a successful sign-in you go straight to the profile; a load problem shows \"Try again\""
+  "Accounts, leaderboards and the daily reminder removed – back to the game as in 1.7.1"
  ]
 }

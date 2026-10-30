@@ -37,13 +37,6 @@
 
 קבוצה · דיביז'ן · עמדה · גיל · מספר · מדינה · דראפט · טבעת. דראפט מתנהג כמו גיל (מדויק = ירוק, עד 3 שנים = צהוב, חץ למעלה/למטה; UND תואם רק UND). טבעת: ✓ זכה / ✗ לא זכה — ירוק אם זהה לשחקן הסודי, אפור אם לא.
 
-## חשבונות וטבלאות (Firebase)
-
-- פרויקט Firebase: `dnba-c115d`; ההגדרות ב-`app/google-services.json`.
-- כניסה עם Google (Credential Manager), פרופיל ב-`users/{uid}`, כינוי ייחודי דרך `nicknames/{כינוי}`.
-- טבלה יומית: `daily/{תאריך}/results/{uid}`, תוצאה אחת ליום. ליגה חודשית: `league/{yyyy-MM}/players/{uid}` — ניצחון בניחוש 1 = 10 נק', כל ניחוש נוסף פחות 1, הפסד = 0.
-- **חוקי האבטחה ב-`firestore.rules`** — מדביקים ב-Firebase → Firestore → Rules → Publish. בדיקות לחוקים (עם האמולטור): `cd tools/rules-test && npm install && npm test`.
-
 ## בדיקות
 
 ```bash

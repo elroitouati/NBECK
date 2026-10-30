@@ -179,8 +179,6 @@ private fun AppNav(showHowToFirst: Boolean) {
                 onSettings = { nav.navigate("settings") },
                 onHowTo = { nav.navigate("howto") },
                 onArchive = { nav.navigate("archive") },
-                onLeaderboards = { nav.navigate("leaderboards") },
-                onAccount = { nav.navigate("account") },
             )
         }
         composable(
@@ -192,10 +190,6 @@ private fun AppNav(showHowToFirst: Boolean) {
                 ?: java.time.LocalDate.now()
             GameScreen(mode, onBack = { nav.popBackStack() }, onHome = { nav.popBackStack("home", inclusive = false) }, date = date)
         }
-        composable("account") { com.nbeck.app.ui.screens.AccountScreen(onBack = { nav.popBackStack() }) }
-        composable("leaderboards") {
-            com.nbeck.app.ui.screens.LeaderboardScreen(onBack = { nav.popBackStack() }, onAccount = { nav.navigate("account") })
-        }
         composable("archive") {
             ArchiveScreen(onBack = { nav.popBackStack() }, onPlay = { d -> nav.navigate("game/DAILY?date=$d") })
         }
@@ -206,9 +200,7 @@ private fun AppNav(showHowToFirst: Boolean) {
         }
         composable("stats") { StatsScreen(onBack = { nav.popBackStack() }, onPlay = { m -> nav.navigate("game/${m.name}") { popUpTo("home") } }) }
         composable("achievements") { AchievementsScreen(onBack = { nav.popBackStack() }) }
-        composable("settings") {
-            SettingsScreen(onBack = { nav.popBackStack() }, onVersions = { nav.navigate("versions") }, onAccount = { nav.navigate("account") })
-        }
+        composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }, onVersions = { nav.navigate("versions") }) }
         composable("versions") { com.nbeck.app.ui.screens.VersionsScreen(onBack = { nav.popBackStack() }) }
     }
 }

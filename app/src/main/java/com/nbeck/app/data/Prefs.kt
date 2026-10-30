@@ -34,8 +34,6 @@ data class Settings(
     val notifiedVersion: Int = 0,
     /** Asked for the notification permission (Android 13+) once already. */
     val askedNotifications: Boolean = false,
-    /** Evening reminder when today's daily isn't played yet. */
-    val dailyReminder: Boolean = true,
 )
 
 /** Theme actually in effect: the system's until the player picks one in Settings. */
@@ -53,8 +51,6 @@ data class SavedGame(
     val finished: Boolean = false,
     val won: Boolean = false,
     val gaveUp: Boolean = false,
-    /** Wall-clock millis of the first guess (for the daily table's time tie-break); 0 = not started. */
-    val startedAt: Long = 0,
     /** Stats already recorded for this game (guards against double counting). */
     val recorded: Boolean = false,
 )
