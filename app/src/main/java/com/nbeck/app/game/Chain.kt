@@ -106,13 +106,14 @@ data class ChainRound(
     val attempts: Int = 0,
     val won: Boolean = false,
     val lost: Boolean = false,
+    val gaveUp: Boolean = false,
 ) {
     val finished get() = won || lost
     val attemptsLeft get() = CHAIN_ATTEMPTS - attempts
     /** Players between start and goal in a finished chain. */
     val between get() = (chain.size - 1).coerceAtLeast(0)
 
-    /** Every guess costs an attempt; a teammate of the chain's last player extends it. */
+    /** Every guess costs an attempt; a teammate of the chain's last player extends it. Links are final. */
     fun guess(id: String, g: TeammateGraph): Pair<ChainRound, ChainMove> {
         if (finished || id in chain) return this to ChainMove.ALREADY_USED
         val used = attempts + 1
@@ -128,8 +129,8 @@ data class ChainRound(
         return copy(chain = extended, attempts = used, lost = used >= CHAIN_ATTEMPTS) to ChainMove.LINKED
     }
 
-    /** Drop the last link (free) — for when a path turns out to be a dead end. */
-    fun undo(): ChainRound = if (finished || chain.size <= 1) this else copy(chain = chain.dropLast(1))
+    /** Give up: the round ends as a loss. */
+    fun giveUp(): ChainRound = if (finished) this else copy(lost = true, gaveUp = true)
 }
 
 @Serializable

@@ -74,7 +74,12 @@ object Updates {
         if (notify(context, latest, settings.language)) app.prefs.updateSettings { it.copy(notifiedVersion = latest.versionCode) }
     }
 
-    fun downloadIntent(r: LatestRelease) = Intent(Intent.ACTION_VIEW, Uri.parse(r.apk)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    /** Notification tap: open the app, which downloads and installs the update itself. */
+    const val EXTRA_INSTALL = "dnba.install_update"
+    private fun openAppIntent(context: Context) =
+        Intent(context, com.nbeck.app.MainActivity::class.java)
+            .putExtra(EXTRA_INSTALL, true)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
 
     private fun notify(context: Context, r: LatestRelease, language: Language): Boolean {
         if (Build.VERSION.SDK_INT >= 33 &&
@@ -85,15 +90,15 @@ object Updates {
         nm.createNotificationChannel(
             NotificationChannel(CHANNEL, if (he) "עדכוני גרסה" else "App updates", NotificationManager.IMPORTANCE_DEFAULT)
         )
-        val tap = PendingIntent.getActivity(context, 0, downloadIntent(r), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val tap = PendingIntent.getActivity(context, 0, openAppIntent(context), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val notes = (if (he) r.notesHe else r.notesEn).joinToString("\n") { "• $it" }
         val n = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(0xFFFF7A1A.toInt())
             .setContentTitle(if (he) "גרסה חדשה של DNBA: ${r.versionName}" else "New DNBA version: ${r.versionName}")
-            .setContentText(if (he) "לחץ כדי להוריד ולהתקין" else "Tap to download and install")
+            .setContentText(if (he) "לחץ כדי לעדכן" else "Tap to update")
             .setStyle(NotificationCompat.BigTextStyle().bigText(
-                (if (he) "לחץ כדי להוריד ולהתקין\n" else "Tap to download and install\n") + notes
+                (if (he) "לחץ כדי לעדכן\n" else "Tap to update\n") + notes
             ))
             .setContentIntent(tap)
             .setAutoCancel(true)
@@ -115,4 +120,91 @@ class UpdateWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx
         Updates.check(applicationContext)
         return Result.success()
     }
+}
+
+sealed interface InstallState {
+    data object Idle : InstallState
+    data class Downloading(val percent: Int) : InstallState
+    /** Android needs "Install unknown apps" allowed for DNBA once; we wait for the user to come back. */
+    data object NeedsPermission : InstallState
+    /** The system installer is open. */
+    data object Installing : InstallState
+    data class Failed(val reason: String) : InstallState
+}
+
+/**
+ * Downloads the new APK into the app's cache and opens the system installer on it — no browser,
+ * no Files app. Android still shows its own "Install / Update" confirmation; that can't be skipped
+ * for an app outside the Play Store.
+ */
+object Installer {
+    val state = kotlinx.coroutines.flow.MutableStateFlow<InstallState>(InstallState.Idle)
+    /** Set from a notification tap: start the update as soon as the app is up. */
+    val requested = kotlinx.coroutines.flow.MutableStateFlow(false)
+    private var pending: java.io.File? = null
+    private val client = OkHttpClient.Builder().connectTimeout(20, TimeUnit.SECONDS).readTimeout(60, TimeUnit.SECONDS).build()
+
+    suspend fun downloadAndInstall(context: Context, r: LatestRelease) {
+        if (state.value is InstallState.Downloading) return
+        state.value = InstallState.Downloading(0)
+        val dir = java.io.File(context.cacheDir, "updates").apply { mkdirs() }
+        dir.listFiles()?.forEach { it.delete() }
+        val file = java.io.File(dir, "DNBA-${r.versionCode}.apk")
+        val ok = withContext(Dispatchers.IO) {
+            runCatching {
+                client.newCall(Request.Builder().url(r.apk).header("Cache-Control", "no-cache").build()).execute().use { res ->
+                    check(res.isSuccessful) { "HTTP ${res.code}" }
+                    val body = res.body!!
+                    val total = body.contentLength().takeIf { it > 0 }
+                    body.byteStream().use { input ->
+                        file.outputStream().use { out ->
+                            val buf = ByteArray(64 * 1024)
+                            var done = 0L
+                            var last = -1
+                            while (true) {
+                                val n = input.read(buf)
+                                if (n < 0) break
+                                out.write(buf, 0, n)
+                                done += n
+                                val pct = if (total != null) (done * 100 / total).toInt() else 0
+                                if (pct != last) { last = pct; state.value = InstallState.Downloading(pct) }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ok.exceptionOrNull()?.let { state.value = InstallState.Failed(it.message ?: "download failed"); return }
+        install(context, file)
+    }
+
+    fun install(context: Context, file: java.io.File) {
+        val pm = context.packageManager
+        if (!pm.canRequestPackageInstalls()) {
+            pending = file
+            state.value = InstallState.NeedsPermission
+            context.startActivity(
+                Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}"))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+            return
+        }
+        val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.updates", file)
+        context.startActivity(
+            Intent(Intent.ACTION_VIEW).setDataAndType(uri, "application/vnd.android.package-archive")
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+        state.value = InstallState.Installing
+    }
+
+    /** Back from the "Install unknown apps" screen: continue if it was allowed. */
+    fun resumeIfAllowed(context: Context) {
+        val f = pending ?: return
+        if (state.value == InstallState.NeedsPermission && context.packageManager.canRequestPackageInstalls()) {
+            pending = null
+            install(context, f)
+        }
+    }
+
+    fun reset() { if (state.value !is InstallState.Downloading) state.value = InstallState.Idle }
 }

@@ -128,23 +128,25 @@ class ScreenshotTest {
 
     @OptIn(com.github.takahirom.roborazzi.ExperimentalRoborazziApi::class)
     @Test fun update_available_he() {
+        com.nbeck.app.data.Installer.state.value = com.nbeck.app.data.InstallState.Downloading(42)
         compose.setContent {
             CompositionLocalProvider(LocalStrings provides stringsFor(Language.HE), LocalLayoutDirection provides LayoutDirection.Rtl) {
                 NbeckTheme(ThemeMode.DARK) {
                     HomeScreen({}, {}, {}, {}, {}, {})
                     com.nbeck.app.ui.screens.UpdateAvailableDialog(
-                        com.nbeck.app.data.LatestRelease(99, "1.8.0", "https://example.invalid/DNBA.apk",
+                        com.nbeck.app.data.LatestRelease(99, "2.2.0", "https://example.invalid/DNBA.apk",
                             notesHe = listOf("אנימציה חדשה בניצחון", "תיקוני באגים")),
-                        onUpdate = {}, onLater = {},
+                        onLater = {},
                     )
                 }
             }
         }
         compose.mainClock.advanceTimeBy(1500); compose.waitForIdle()
         com.github.takahirom.roborazzi.captureScreenRoboImage("build/screenshots/14_update_he.png")
+        com.nbeck.app.data.Installer.state.value = com.nbeck.app.data.InstallState.Idle
     }
 
-    private fun seedChain(won: Boolean) = runBlocking {
+    private fun seedChain() = runBlocking {
         val players = app.players.load()
         val g = com.nbeck.app.game.TeammateGraph(players)
         var pz = g.newPuzzle(kotlin.random.Random(11))
@@ -153,10 +155,9 @@ class ScreenshotTest {
         var r = com.nbeck.app.game.ChainRound(pz)
         r = r.guess(players.first { !g.areTeammates(pz.startId, it.id) && it.id != pz.startId && it.id != pz.goalId }.id, g).first
         r = r.guess(path[1], g).first
-        if (won) r = r.guess(path[2], g).first
-        app.prefs.saveChainRound(if (won) r.copy(won = false) else r) // restored rounds must be unfinished
+        app.prefs.saveChainRound(r)
     }
-    @Test fun chain_progress_he() { seedChain(false); shot("17_chain_he", realWaitMs = 2500) { com.nbeck.app.ui.screens.ChainScreen({}) } }
+    @Test fun chain_progress_he() { seedChain(); shot("17_chain_he", realWaitMs = 2500) { com.nbeck.app.ui.screens.ChainScreen({}) } }
 
     @Test fun home_he_dark() = shot("01_home_he_dark") { HomeScreen({}, {}, {}, {}, {}, {}) }
     @Test fun home_en_light() = shot("02_home_en_light", Language.EN, ThemeMode.LIGHT) { HomeScreen({}, {}, {}, {}, {}, {}) }

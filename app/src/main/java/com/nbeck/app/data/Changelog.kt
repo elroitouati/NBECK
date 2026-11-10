@@ -12,6 +12,17 @@ data class Release(
 object Changelog {
     val releases: List<Release> = listOf(
         Release(
+            18, "2.1.0", "2026-11-10",
+            he = listOf(
+                "עדכון ישר מהאפליקציה: \"עדכן עכשיו\" מוריד ופותח את חלון ההתקנה, בלי דפדפן וקבצים",
+                "שרשרת שחקנים: כפתור ויתור, ואי אפשר יותר למחוק חוליה",
+            ),
+            en = listOf(
+                "Update right from the app: \"Update now\" downloads and opens the installer – no browser or Files",
+                "Players Chain: give-up button; links can no longer be removed",
+            ),
+        ),
+        Release(
             17, "2.0.0", "2026-11-10",
             he = listOf(
                 "משחק חדש: שרשרת שחקנים – חבר בין שני שחקנים דרך חברים לקבוצה, ב-5 ניסיונות",

@@ -24,6 +24,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -132,13 +136,14 @@ private fun Bullet(text: String) {
     }
 }
 
-/** On open, when the repo has a newer version: its notes, "Update now" (downloads the APK) and "Later". */
+/** On open, when the repo has a newer version: its notes and "Update now" (downloads and installs in-app). */
 @Composable
-fun UpdateAvailableDialog(release: com.nbeck.app.data.LatestRelease, onUpdate: () -> Unit, onLater: () -> Unit) {
+fun UpdateAvailableDialog(release: com.nbeck.app.data.LatestRelease, onLater: () -> Unit) {
     val c = nb
     val s = LocalStrings.current
     val shape = RoundedCornerShape(Space.rPanel)
-    Dialog(onDismissRequest = onLater) {
+    val busy = com.nbeck.app.data.Installer.state.collectAsState().value is com.nbeck.app.data.InstallState.Downloading
+    Dialog(onDismissRequest = { if (!busy) onLater() }) {
         Column(
             Modifier.fillMaxWidth().clip(shape).background(c.surface1).border(1.dp, c.accent.copy(alpha = 0.6f), shape).padding(Space.xl),
         ) {
@@ -159,9 +164,46 @@ fun UpdateAvailableDialog(release: com.nbeck.app.data.LatestRelease, onUpdate: (
                 }
             }
             Spacer(Modifier.height(Space.xl))
-            NbButton(s.updateNow, Modifier.fillMaxWidth(), onClick = onUpdate)
-            Spacer(Modifier.height(Space.s))
-            NbButton(s.later, Modifier.fillMaxWidth(), kind = com.nbeck.app.ui.components.ButtonKind.GHOST, onClick = onLater)
+            UpdateAction(release)
+            if (!busy) {
+                Spacer(Modifier.height(Space.s))
+                NbButton(s.later, Modifier.fillMaxWidth(), kind = com.nbeck.app.ui.components.ButtonKind.GHOST, onClick = onLater)
+            }
         }
+    }
+}
+
+/** "Update now" button that turns into download progress / install status. Used in the dialog and Settings. */
+@Composable
+fun UpdateAction(release: com.nbeck.app.data.LatestRelease, autoStart: Boolean = false) {
+    val c = nb
+    val s = LocalStrings.current
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val state by com.nbeck.app.data.Installer.state.collectAsState()
+    val start = { scope.launch { com.nbeck.app.data.Installer.downloadAndInstall(ctx.applicationContext, release) }; Unit }
+    androidx.compose.runtime.LaunchedEffect(autoStart) { if (autoStart && state is com.nbeck.app.data.InstallState.Idle) start() }
+    when (val st = state) {
+        is com.nbeck.app.data.InstallState.Downloading -> Column {
+            Text(s.downloading(st.percent), style = Type.bodyStrong, color = c.text1)
+            Spacer(Modifier.height(Space.s))
+            androidx.compose.material3.LinearProgressIndicator(
+                progress = { st.percent / 100f },
+                modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape),
+                color = c.accent, trackColor = c.surface2, drawStopIndicator = {},
+            )
+        }
+        com.nbeck.app.data.InstallState.NeedsPermission -> Text(s.installNeedsPermission, style = Type.body, color = c.text1)
+        com.nbeck.app.data.InstallState.Installing -> Column {
+            Text(s.installOpened, style = Type.body, color = c.text2)
+            Spacer(Modifier.height(Space.s))
+            NbButton(s.updateNow, Modifier.fillMaxWidth(), onClick = start)
+        }
+        is com.nbeck.app.data.InstallState.Failed -> Column {
+            Text(s.installFailed, style = Type.body, color = Color(0xFFE5484D))
+            Spacer(Modifier.height(Space.s))
+            NbButton(s.retry, Modifier.fillMaxWidth(), onClick = start)
+        }
+        com.nbeck.app.data.InstallState.Idle -> NbButton(s.updateNow, Modifier.fillMaxWidth(), onClick = start)
     }
 }

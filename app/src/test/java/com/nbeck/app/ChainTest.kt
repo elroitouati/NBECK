@@ -58,11 +58,17 @@ class ChainTest {
         assertEquals(ChainMove.ALREADY_USED, r.guess("b", g).second)   // finished
     }
 
-    @Test fun undoIsFreeAndRepeatsAreIgnored() {
-        var r = ChainRound(ChainPuzzle("a", "d", 2)).guess("b", g).first
+    @Test fun repeatsAreIgnored() {
+        val r = ChainRound(ChainPuzzle("a", "d", 2)).guess("b", g).first
         assertEquals(ChainMove.ALREADY_USED, r.guess("b", g).second)
-        r = r.undo()
-        assertEquals(listOf("a"), r.chain); assertEquals(1, r.attempts)
+        assertEquals(1, r.attempts)
+    }
+
+    @Test fun giveUpLoses() {
+        val r = ChainRound(ChainPuzzle("a", "d", 2)).guess("b", g).first.giveUp()
+        assertTrue(r.lost); assertTrue(r.gaveUp); assertFalse(r.won)
+        assertEquals(ChainMove.ALREADY_USED, r.guess("c", g).second)
+        assertEquals(0, ChainStats(currentStreak = 3).record(r).currentStreak)
     }
 
     @Test fun guessingTheGoalDirectlyWorksWhenLinked() {

@@ -124,12 +124,16 @@ interface Strings {
     val attempts: String
     val chainStart: String
     val chainGoal: String
-    val chainUndo: String
     val chainWin: String
     val chainLoss: String
     val chainSolution: String
     val newRound: String
     val chainMisses: String
+    fun downloading(percent: Int): String
+    val installNeedsPermission: String
+    val installOpened: String
+    val installFailed: String
+    val retry: String
     fun chainMin(n: Int): String
     fun chainMiss(a: String, b: String): String
     fun chainWinSub(between: Int, attempts: Int): String
@@ -316,16 +320,20 @@ object He : Strings {
     override val later = "אחר כך"
     override val chain = "שרשרת שחקנים"
     override val chainSub = "חבר בין שני שחקנים דרך חברים לקבוצה"
-    override val chainRules = "כל שחקן בשרשרת צריך לשחק עם הקודם באותה קבוצה ובאותה עונה. כל ניחוש הוא ניסיון – יש לך 5."
+    override val chainRules = "כל שחקן בשרשרת צריך לשחק עם הקודם באותה קבוצה ובאותה עונה. כל ניחוש הוא ניסיון, ואי אפשר למחוק חוליה – יש לך 5."
     override val attempts = "ניסיונות"
     override val chainStart = "התחלה"
     override val chainGoal = "יעד"
-    override val chainUndo = "הסר את האחרון"
     override val chainWin = "חיברת!"
     override val chainLoss = "נגמרו הניסיונות"
     override val chainSolution = "פתרון אפשרי"
     override val newRound = "סיבוב חדש"
     override val chainMisses = "לא התחברו"
+    override fun downloading(percent: Int) = "מוריד את העדכון… $percent%"
+    override val installNeedsPermission = "כדי לעדכן, הדלק את \"אפשר ממקור זה\" ל-DNBA וחזור לכאן – ההתקנה תמשיך לבד"
+    override val installOpened = "חלון ההתקנה נפתח – לחץ \"עדכן\""
+    override val installFailed = "ההורדה נכשלה. בדוק את החיבור ונסה שוב"
+    override val retry = "נסה שוב"
     override fun chainMin(n: Int) = if (n == 1) "אפשר לחבר דרך שחקן אחד באמצע" else "אפשר לחבר דרך $n שחקנים באמצע"
     override fun chainMiss(a: String, b: String) = "$a לא שיחק עם $b"
     override fun chainWinSub(between: Int, attempts: Int) = "$between שחקנים בדרך · $attempts/5 ניסיונות"
@@ -512,16 +520,20 @@ object En : Strings {
     override val later = "Later"
     override val chain = "Players Chain"
     override val chainSub = "Connect two players through teammates"
-    override val chainRules = "Each player must have shared a team and season with the one before. Every guess is an attempt – you have 5."
+    override val chainRules = "Each player must have shared a team and season with the one before. Every guess is an attempt and links can't be removed – you have 5."
     override val attempts = "Attempts"
     override val chainStart = "Start"
     override val chainGoal = "Goal"
-    override val chainUndo = "Remove last"
     override val chainWin = "Connected!"
     override val chainLoss = "Out of attempts"
     override val chainSolution = "A possible chain"
     override val newRound = "New round"
     override val chainMisses = "No link"
+    override fun downloading(percent: Int) = "Downloading the update… $percent%"
+    override val installNeedsPermission = "To update, turn on \"Allow from this source\" for DNBA and come back – the install continues by itself"
+    override val installOpened = "The installer is open – tap \"Update\""
+    override val installFailed = "Download failed. Check your connection and try again"
+    override val retry = "Try again"
     override fun chainMin(n: Int) = if (n == 1) "Can be done with 1 player in between" else "Can be done with $n players in between"
     override fun chainMiss(a: String, b: String) = "$a never played with $b"
     override fun chainWinSub(between: Int, attempts: Int) = "$between in between · $attempts/5 attempts"

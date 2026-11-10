@@ -438,7 +438,7 @@ internal fun SuggestionRow(p: Player, onClick: () -> Unit) {
 }
 
 @Composable
-private fun GiveUpButton(onClick: () -> Unit) {
+internal fun GiveUpButton(onClick: () -> Unit) {
     val c = nb
     val s = LocalStrings.current
     Row(
@@ -454,7 +454,7 @@ private fun GiveUpButton(onClick: () -> Unit) {
 }
 
 @Composable
-private fun GiveUpDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+internal fun GiveUpDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     val c = nb
     val s = LocalStrings.current
     androidx.compose.material3.AlertDialog(

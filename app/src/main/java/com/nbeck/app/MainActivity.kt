@@ -83,6 +83,17 @@ class MainActivity : ComponentActivity() {
         android.provider.Settings.Global.getFloat(contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f
 
     /** Every time the app is opened (or comes back to the foreground): pull fresh rosters from ESPN. */
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra(com.nbeck.app.data.Updates.EXTRA_INSTALL, false)) com.nbeck.app.data.Installer.requested.value = true
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Back from "Install unknown apps": continue the update if it was allowed.
+        com.nbeck.app.data.Installer.resumeIfAllowed(this)
+    }
+
     override fun onStart() {
         super.onStart()
         val app = application as NbeckApp
@@ -97,6 +108,7 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
         val app = application as NbeckApp
+        if (intent?.getBooleanExtra(com.nbeck.app.data.Updates.EXTRA_INSTALL, false) == true) com.nbeck.app.data.Installer.requested.value = true
         setContent {
             val settings by app.prefs.settings.collectAsState(initial = null)
             val st = settings
@@ -135,12 +147,17 @@ class MainActivity : ComponentActivity() {
                     val latest by app.latestRelease.collectAsState()
                     var updateDismissed by rememberSaveable { mutableStateOf(false) }
                     val update = latest?.takeIf { com.nbeck.app.data.Updates.isNewer(it) }
-                    if (update != null && !updateDismissed && !showIntro && whatsNew.isEmpty()) {
-                        com.nbeck.app.ui.screens.UpdateAvailableDialog(
-                            update,
-                            onUpdate = { updateDismissed = true; startActivity(com.nbeck.app.data.Updates.downloadIntent(update)) },
-                            onLater = { updateDismissed = true },
-                        )
+                    val requested by com.nbeck.app.data.Installer.requested.collectAsState()
+                    if (update != null && (!updateDismissed || requested) && !showIntro && whatsNew.isEmpty()) {
+                        com.nbeck.app.ui.screens.UpdateAvailableDialog(update, onLater = {
+                            updateDismissed = true
+                            com.nbeck.app.data.Installer.requested.value = false
+                            com.nbeck.app.data.Installer.reset()
+                        })
+                        // Opened from the "new version" notification: start right away.
+                        LaunchedEffect(requested) {
+                            if (requested) com.nbeck.app.data.Installer.downloadAndInstall(applicationContext, update)
+                        }
                     }
                     if (showIntro) {
                         com.nbeck.app.ui.components.IntroOverlay(onLand = { app.feedback.tick() }, onDone = { showIntro = false })

@@ -1,15 +1,13 @@
 {
- "versionCode": 17,
- "versionName": "2.0.0",
+ "versionCode": 18,
+ "versionName": "2.1.0",
  "apk": "https://raw.githubusercontent.com/elroitouati/NBECK/HEAD/release/DNBA.apk",
  "notesHe": [
-  "משחק חדש: שרשרת שחקנים – חבר בין שני שחקנים דרך חברים לקבוצה, ב-5 ניסיונות",
-  "היסטוריית הקבוצות של כל שחקן מתעדכנת אוטומטית מ-ESPN",
-  "3 הישגים חדשים לשרשרת"
+  "עדכון ישר מהאפליקציה: \"עדכן עכשיו\" מוריד ופותח את חלון ההתקנה, בלי דפדפן וקבצים",
+  "שרשרת שחקנים: כפתור ויתור, ואי אפשר יותר למחוק חוליה"
  ],
  "notesEn": [
-  "New game: Players Chain – connect two players through teammates in 5 attempts",
-  "Every player's team history updates automatically from ESPN",
-  "3 new Players Chain achievements"
+  "Update right from the app: \"Update now\" downloads and opens the installer – no browser or Files",
+  "Players Chain: give-up button; links can no longer be removed"
  ]
 }

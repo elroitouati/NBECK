@@ -28,14 +28,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -143,6 +144,19 @@ class ChainViewModel(app: Application) : AndroidViewModel(app) {
             )
         }
         cues.tryEmit(move)
+        persist(next)
+    }
+
+    private fun finish(next: ChainRound) {
+        _ui.update {
+            it.copy(round = next, query = "", suggestions = emptyList(), missText = null, endedLive = true,
+                solution = graph.shortestPath(next.puzzle.startId, next.puzzle.goalId).orEmpty())
+        }
+        cues.tryEmit(ChainMove.NOT_TEAMMATES)
+        persist(next)
+    }
+
+    private fun persist(next: ChainRound) {
         viewModelScope.launch {
             nb.prefs.saveChainRound(next)
             if (next.finished) {
@@ -155,11 +169,10 @@ class ChainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun undo() {
+    fun giveUp() {
         val r = _ui.value.round ?: return
-        val next = r.undo()
-        _ui.update { it.copy(round = next, missText = null) }
-        viewModelScope.launch { nb.prefs.saveChainRound(next) }
+        if (r.finished) return
+        finish(r.giveUp())
     }
 
     fun newRound() {
@@ -207,9 +220,14 @@ fun ChainScreen(onBack: () -> Unit) {
 
     ArenaBackground(parquet = false) {
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().imePadding()) {
+            var confirmGiveUp by remember { mutableStateOf(false) }
+            if (confirmGiveUp) GiveUpDialog(onConfirm = { confirmGiveUp = false; vm.giveUp() }, onDismiss = { confirmGiveUp = false })
             TopBar(s.chain, onBack) {
-                ui.round?.let { AttemptBalls(it.attemptsLeft) }
-                Spacer(Modifier.width(Space.m))
+                ui.round?.let { r ->
+                    AttemptBalls(r.attemptsLeft)
+                    Spacer(Modifier.width(Space.m))
+                    if (!r.finished) GiveUpButton { confirmGiveUp = true }
+                }
             }
             val r = ui.round
             if (r == null || ui.loading) {
@@ -259,11 +277,6 @@ fun ChainScreen(onBack: () -> Unit) {
             if (r.finished) {
                 EndPanel(r, onNew = vm::newRound, onHome = onBack)
             } else {
-                if (r.chain.size > 1) {
-                    Row(Modifier.fillMaxWidth().padding(horizontal = Space.m), horizontalArrangement = Arrangement.End) {
-                        NbButton(s.chainUndo, kind = ButtonKind.GHOST, leading = { Icon(Icons.AutoMirrored.Rounded.Undo, null, tint = c.text1) }, onClick = vm::undo)
-                    }
-                }
                 SearchBar(query = ui.query, suggestions = ui.suggestions, onQuery = vm::onQuery, onPick = vm::guess)
             }
         }
@@ -364,7 +377,7 @@ private fun EndPanel(r: ChainRound, onNew: () -> Unit, onHome: () -> Unit) {
         Modifier.fillMaxWidth().clip(shape).background(c.surface1).border(1.dp, c.border, shape).padding(Space.xl),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(if (r.won) s.chainWin else s.chainLoss, style = Type.h2, color = c.text1)
+        Text(if (r.won) s.chainWin else if (r.gaveUp) s.gaveUp else s.chainLoss, style = Type.h2, color = c.text1)
         if (r.won) Text(s.chainWinSub(r.between, r.attempts), style = Type.body, color = c.text2)
         Spacer(Modifier.height(Space.l))
         NbButton(s.newRound, Modifier.fillMaxWidth(), onClick = onNew)

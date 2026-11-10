@@ -109,7 +109,7 @@ fun SettingsScreen(onBack: () -> Unit, onVersions: () -> Unit = {}) {
                 if (newer != null) {
                     Text(s.updateAvailable(newer.versionName), style = Type.bodyStrong, color = c.accent)
                     Spacer(Modifier.height(Space.s))
-                    NbButton(s.downloadUpdate, Modifier.fillMaxWidth()) { ctx.startActivity(com.nbeck.app.data.Updates.downloadIntent(newer)) }
+                    com.nbeck.app.ui.screens.UpdateAction(newer)
                 } else if (latest != null) {
                     Text(s.upToDate, style = Type.body, color = c.text2)
                 }
