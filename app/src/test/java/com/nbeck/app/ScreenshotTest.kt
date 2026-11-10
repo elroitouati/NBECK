@@ -52,7 +52,7 @@ class ScreenshotTest {
 
     @Before fun only() = assumeTrue(System.getProperty("screenshots") == "true")
 
-    private fun shot(name: String, lang: Language = Language.HE, theme: ThemeMode = ThemeMode.DARK, content: @Composable () -> Unit) {
+    private fun shot(name: String, lang: Language = Language.HE, theme: ThemeMode = ThemeMode.DARK, realWaitMs: Long = 0, content: @Composable () -> Unit) {
         compose.setContent {
             CompositionLocalProvider(
                 LocalStrings provides stringsFor(lang),
@@ -61,6 +61,8 @@ class ScreenshotTest {
         }
         compose.mainClock.advanceTimeBy(3000)
         compose.waitForIdle()
+        // Screens that load on background threads (real time, not the test clock).
+        repeat((realWaitMs / 100).toInt()) { Thread.sleep(100); compose.mainClock.advanceTimeBy(100); compose.waitForIdle() }
         compose.onRoot().captureRoboImage("build/screenshots/$name.png")
     }
 
@@ -141,6 +143,20 @@ class ScreenshotTest {
         compose.mainClock.advanceTimeBy(1500); compose.waitForIdle()
         com.github.takahirom.roborazzi.captureScreenRoboImage("build/screenshots/14_update_he.png")
     }
+
+    private fun seedChain(won: Boolean) = runBlocking {
+        val players = app.players.load()
+        val g = com.nbeck.app.game.TeammateGraph(players)
+        var pz = g.newPuzzle(kotlin.random.Random(11))
+        while (pz.minBetween != 2) pz = g.newPuzzle(kotlin.random.Random(pz.startId.hashCode()))
+        val path = g.shortestPath(pz.startId, pz.goalId)!!
+        var r = com.nbeck.app.game.ChainRound(pz)
+        r = r.guess(players.first { !g.areTeammates(pz.startId, it.id) && it.id != pz.startId && it.id != pz.goalId }.id, g).first
+        r = r.guess(path[1], g).first
+        if (won) r = r.guess(path[2], g).first
+        app.prefs.saveChainRound(if (won) r.copy(won = false) else r) // restored rounds must be unfinished
+    }
+    @Test fun chain_progress_he() { seedChain(false); shot("17_chain_he", realWaitMs = 2500) { com.nbeck.app.ui.screens.ChainScreen({}) } }
 
     @Test fun home_he_dark() = shot("01_home_he_dark") { HomeScreen({}, {}, {}, {}, {}, {}) }
     @Test fun home_en_light() = shot("02_home_en_light", Language.EN, ThemeMode.LIGHT) { HomeScreen({}, {}, {}, {}, {}, {}) }

@@ -12,6 +12,19 @@ data class Release(
 object Changelog {
     val releases: List<Release> = listOf(
         Release(
+            17, "2.0.0", "2026-11-10",
+            he = listOf(
+                "משחק חדש: שרשרת שחקנים – חבר בין שני שחקנים דרך חברים לקבוצה, ב-5 ניסיונות",
+                "היסטוריית הקבוצות של כל שחקן מתעדכנת אוטומטית מ-ESPN",
+                "3 הישגים חדשים לשרשרת",
+            ),
+            en = listOf(
+                "New game: Players Chain – connect two players through teammates in 5 attempts",
+                "Every player's team history updates automatically from ESPN",
+                "3 new Players Chain achievements",
+            ),
+        ),
+        Release(
             16, "1.9.0", "2026-10-30",
             he = listOf("הוסרו החשבונות, הטבלאות והתזכורת היומית – חזרה למשחק כמו בגרסה 1.7.1"),
             en = listOf("Accounts, leaderboards and the daily reminder removed – back to the game as in 1.7.1"),

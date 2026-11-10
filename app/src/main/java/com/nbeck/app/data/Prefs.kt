@@ -69,10 +69,17 @@ class Prefs(private val context: Context) {
 
     val settings = flow(K_SETTINGS, Settings.serializer(), Settings())
     val stats = flow(K_STATS, Stats.serializer(), Stats())
+    val chainStats = flow(K_CHAIN_STATS, com.nbeck.app.game.ChainStats.serializer(), com.nbeck.app.game.ChainStats())
+    /** The Players Chain round in progress (null = none). */
+    val chainRound: Flow<com.nbeck.app.game.ChainRound?> = context.store.data.map { p ->
+        p[K_CHAIN_ROUND]?.let { runCatching { json.decodeFromString(com.nbeck.app.game.ChainRound.serializer(), it) }.getOrNull() }
+    }
     val achievements = flow(K_ACH, AchievementState.serializer(), AchievementState())
 
     suspend fun updateSettings(f: (Settings) -> Settings) = put(K_SETTINGS, Settings.serializer(), f(settings.first()))
     suspend fun saveStats(s: Stats) = put(K_STATS, Stats.serializer(), s)
+    suspend fun saveChainStats(s: com.nbeck.app.game.ChainStats) = put(K_CHAIN_STATS, com.nbeck.app.game.ChainStats.serializer(), s)
+    suspend fun saveChainRound(r: com.nbeck.app.game.ChainRound) = put(K_CHAIN_ROUND, com.nbeck.app.game.ChainRound.serializer(), r)
     suspend fun saveAchievements(s: AchievementState) = put(K_ACH, AchievementState.serializer(), s)
 
     /** Daily games are stored per date (archive); free play keeps one running game. */
@@ -115,6 +122,8 @@ class Prefs(private val context: Context) {
         val K_SETTINGS = stringPreferencesKey("settings")
         val K_STATS = stringPreferencesKey("stats")
         val K_ACH = stringPreferencesKey("achievements")
+        val K_CHAIN_STATS = stringPreferencesKey("chain_stats")
+        val K_CHAIN_ROUND = stringPreferencesKey("chain_round")
         val LEGACY_DAILY = stringPreferencesKey("game_daily")
     }
 }

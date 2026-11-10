@@ -345,7 +345,7 @@ fun Legend(mark: Mark, label: String) {
 }
 
 @Composable
-private fun SearchBar(
+internal fun SearchBar(
     query: String,
     suggestions: List<Player>,
     onQuery: (String) -> Unit,
@@ -418,7 +418,7 @@ private fun SearchBar(
 }
 
 @Composable
-private fun SuggestionRow(p: Player, onClick: () -> Unit) {
+internal fun SuggestionRow(p: Player, onClick: () -> Unit) {
     val c = nb
     Row(
         Modifier.fillMaxWidth().heightIn(min = 56.dp).pressable(onClick = onClick).padding(horizontal = Space.l, vertical = 6.dp),

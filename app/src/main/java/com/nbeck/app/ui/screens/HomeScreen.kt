@@ -27,6 +27,7 @@ import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
@@ -65,6 +66,7 @@ fun HomeScreen(
     onSettings: () -> Unit,
     onHowTo: () -> Unit,
     onArchive: () -> Unit,
+    onChain: () -> Unit = {},
 ) {
     val app = LocalContext.current.applicationContext as NbeckApp
     val s = LocalStrings.current
@@ -117,6 +119,11 @@ fun HomeScreen(
             ModeCard(
                 title = s.free, subtitle = s.freeSub, icon = Icons.Rounded.Shuffle, primary = false, badge = null,
                 onClick = { onPlay(Mode.FREE) },
+            )
+            Spacer(Modifier.height(Space.m))
+            ModeCard(
+                title = s.chain, subtitle = s.chainSub, icon = Icons.Rounded.Link, primary = false, badge = null,
+                onClick = onChain,
             )
             Spacer(Modifier.height(Space.m))
             ModeCard(

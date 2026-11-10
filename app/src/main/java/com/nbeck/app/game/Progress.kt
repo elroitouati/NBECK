@@ -90,6 +90,9 @@ enum class Achievement(val target: Int = 1) {
     RING_HUNTER,
     UNDRAFTED,
     NIGHT_OWL,
+    CHAIN_FIRST,
+    CHAIN_PERFECT,
+    CHAIN_STREAK_5(5),
 }
 
 @Serializable
@@ -193,4 +196,15 @@ object Achievements {
         val stamp = today.toString()
         return state.copy(unlocked = state.unlocked + earned.associate { it.name to stamp }) to earned
     }
+}
+
+/** Players Chain achievements, checked when a round ends. */
+fun Achievements.evaluateChain(s: AchievementState, stats: ChainStats, round: ChainRound, today: LocalDate): Pair<AchievementState, List<Achievement>> {
+    val earned = buildList {
+        if (round.won && !s.isUnlocked(Achievement.CHAIN_FIRST)) add(Achievement.CHAIN_FIRST)
+        if (round.won && round.misses.isEmpty() && round.between <= round.puzzle.minBetween && !s.isUnlocked(Achievement.CHAIN_PERFECT)) add(Achievement.CHAIN_PERFECT)
+        if (stats.maxStreak >= 5 && !s.isUnlocked(Achievement.CHAIN_STREAK_5)) add(Achievement.CHAIN_STREAK_5)
+    }
+    if (earned.isEmpty()) return s to earned
+    return s.copy(unlocked = s.unlocked + earned.associate { it.name to today.toString() }) to earned
 }

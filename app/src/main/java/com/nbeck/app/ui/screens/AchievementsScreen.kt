@@ -22,7 +22,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
+import androidx.compose.material.icons.rounded.AllInclusive
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Bedtime
+import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Diamond
 import androidx.compose.material.icons.rounded.Elderly
@@ -92,6 +95,9 @@ fun Achievement.icon(): ImageVector = when (this) {
     Achievement.RING_HUNTER -> Icons.Rounded.Diamond
     Achievement.UNDRAFTED -> Icons.AutoMirrored.Rounded.TrendingUp
     Achievement.NIGHT_OWL -> Icons.Rounded.Bedtime
+    Achievement.CHAIN_FIRST -> Icons.Rounded.Link
+    Achievement.CHAIN_PERFECT -> Icons.Rounded.AutoAwesome
+    Achievement.CHAIN_STREAK_5 -> Icons.Rounded.AllInclusive
 }
 
 @Composable

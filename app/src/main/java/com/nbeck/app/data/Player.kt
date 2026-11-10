@@ -23,6 +23,8 @@ data class Player(
     val draftYear: Int? = null,
     /** Won at least one NBA championship. */
     val ring: Boolean = false,
+    /** "season:teamId" for every season on a team (ESPN season = year it ends: 2026-27 -> 2027). */
+    val stints: List<String> = emptyList(),
     val ppg: Double? = null,
     val rpg: Double? = null,
     val apg: Double? = null,
@@ -36,11 +38,11 @@ data class Player(
 
 @Serializable
 data class PlayerBundle(
-    /** Bumped when fields are added; older caches are ignored (v2: draft year and ring; v3: hand-filled countries; v4: checked jerseys, dates, countries). */
+    /** Bumped when fields are added; older caches are ignored (v2: draft year and ring; v3: hand-filled countries; v4: checked jerseys, dates, countries; v5: team history). */
     val schema: Int = 1,
     val source: String = "",
     val fetchedAt: String = "",
     val players: List<Player>,
 )
 
-const val PLAYER_SCHEMA = 4
+const val PLAYER_SCHEMA = 5

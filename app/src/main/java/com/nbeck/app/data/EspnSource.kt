@@ -53,9 +53,20 @@ class EspnSource(
                     if (prev != null) prev.draftYear else gate.withPermit { draftYear(p.id) }
                 }
             }.awaitAll()
+            // Team history never shrinks: reuse what we know, download only for new players.
+            val season = currentSeason(java.time.LocalDate.now())
+            val histories = roster.map { p ->
+                async {
+                    val prev = known[p.id]?.stints.orEmpty()
+                    val past = prev.ifEmpty { gate.withPermit { stints(p.id) } }
+                    // A trade or signing shows up as this season's new team right away.
+                    (past + "$season:${p.teamId}").distinct().sorted()
+                }
+            }.awaitAll()
             val worn = runCatching { liveJerseys() }.getOrDefault(emptyMap())
-            val players = roster.zip(drafts) { p, draft ->
+            val players = roster.zip(drafts).zip(histories) { (p, draft), history ->
                 p.copy(
+                    stints = history,
                     draftYear = draft,
                     ring = p.id in ringIds,
                     // The number worn in the team's latest game beats ESPN's (sometimes stale) profile.
@@ -138,6 +149,20 @@ class EspnSource(
         }.awaitAll().flatten().toMap()
     }
 
+    /** "season:team" for every season the player appeared for a team (the athlete's season splits). */
+    private fun stints(id: String): List<String> = runCatching {
+        val out = sortedSetOf<String>()
+        get("$WEB/athletes/$id/stats").arr("categories").forEach { c ->
+            c.jsonObject.arr("statistics").forEach { st ->
+                val o = st.jsonObject
+                val team = o.str("teamId")?.toIntOrNull() ?: return@forEach
+                val year = o.obj("season")?.str("year")?.toIntOrNull() ?: return@forEach
+                if (Teams.find(team) != null) out += "$year:$team"
+            }
+        }
+        out.toList()
+    }.getOrDefault(emptyList())
+
     /** Absent "draft" on the athlete = undrafted. */
     private fun draftYear(id: String): Int? =
         runCatching { get("$CORE/athletes/$id").obj("draft")?.str("year")?.toIntOrNull() }.getOrNull()
@@ -177,6 +202,9 @@ class EspnSource(
         private const val SITE = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba"
         private const val WEB = "https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba"
         private const val CORE = "https://sports.core.api.espn.com/v2/sports/basketball/leagues/nba"
+
+        /** ESPN names a season by the year it ends: 2026-27 -> 2027. */
+        fun currentSeason(today: java.time.LocalDate) = if (today.monthValue >= 8) today.year + 1 else today.year
 
         /** ESPN sometimes uses PG/SG/SF/PF; the game only knows G, F and C. */
         fun position(abbr: String?): String = when (abbr?.uppercase()) {

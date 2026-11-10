@@ -136,6 +136,27 @@ def live_jerseys():
         for m in ex.map(lineup, latest.items()): out.update(m)
     return out
 
+def stints(pid):
+    """["2021:27", ...] = (ESPN season year, team id) for every season the player appeared for a team.
+
+    From the athlete's season splits; a mid-season trade gives one entry per team.
+    """
+    try:
+        d = get(f"https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/{pid}/stats")
+    except Exception:
+        return []  # no stats page yet (rookie who hasn't played)
+    out = set()
+    for c in d.get("categories", []):
+        for st in c.get("statistics", []):
+            team, year = st.get("teamId"), (st.get("season") or {}).get("year")
+            if team and year and team.isdigit() and int(team) in ESPN_TEAM_IDS:
+                out.add(f"{year}:{team}")
+    return sorted(out)
+
+def current_season(today):
+    """ESPN names a season by the year it ends in: 2026-27 -> 2027."""
+    return today.year + 1 if today.month >= 8 else today.year
+
 def draft_year(pid):
     d = get(f"{CORE}/athletes/{pid}").get("draft")
     return d.get("year") if d else None
@@ -212,6 +233,9 @@ def main():
     players = [p for p in players if p["birthDate"]]
     with cf.ThreadPoolExecutor(12) as ex:
         drafts = dict(zip([p["id"] for p in players], ex.map(draft_year, [p["id"] for p in players])))
+    with cf.ThreadPoolExecutor(12) as ex:
+        hist = dict(zip([p["id"] for p in players], ex.map(stints, [p["id"] for p in players])))
+    season = current_season(datetime.date.today())
     st = stats()
     worn = live_jerseys()
     fixes = load_corrections()
@@ -229,6 +253,8 @@ def main():
     ring_ids = {i for ids in rings.values() for i in ids}
     for p in players:
         p["draftYear"] = drafts[p["id"]]
+        # Current team counts for this season even before the player's first game.
+        p["stints"] = sorted(set(hist[p["id"]]) | {f"{season}:{p['teamId']}"})
         p["ring"] = p["id"] in ring_ids
         p.update(st.get(p["id"], {"ppg": None, "rpg": None, "apg": None, "gp": 0}))
     players.sort(key=lambda p: p["id"])
@@ -236,7 +262,7 @@ def main():
         sys.exit(f"only {len(players)} players — refusing to write")
     now = datetime.datetime.now(timezone.utc).isoformat(timespec="seconds")
     with open(os.path.join(ASSETS, "players.json"), "w", encoding="utf-8") as fh:
-        json.dump({"schema": 4, "source": "ESPN public API", "fetchedAt": now, "players": players}, fh, ensure_ascii=False, separators=(",", ":"))
+        json.dump({"schema": 5, "source": "ESPN public API", "fetchedAt": now, "players": players}, fh, ensure_ascii=False, separators=(",", ":"))
     with open(os.path.join(ASSETS, "corrections.json"), "w", encoding="utf-8") as fh:
         json.dump(fixes, fh, ensure_ascii=False, indent=1, sort_keys=True)
     with open(os.path.join(ASSETS, "rings.json"), "w", encoding="utf-8") as fh:

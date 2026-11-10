@@ -118,6 +118,21 @@ interface Strings {
     val updateTitle: String
     val updateNow: String
     val later: String
+    val chain: String
+    val chainSub: String
+    val chainRules: String
+    val attempts: String
+    val chainStart: String
+    val chainGoal: String
+    val chainUndo: String
+    val chainWin: String
+    val chainLoss: String
+    val chainSolution: String
+    val newRound: String
+    val chainMisses: String
+    fun chainMin(n: Int): String
+    fun chainMiss(a: String, b: String): String
+    fun chainWinSub(between: Int, attempts: Int): String
 }
 
 object He : Strings {
@@ -203,6 +218,9 @@ object He : Strings {
         Achievement.RING_HUNTER -> "צייד טבעות"
         Achievement.UNDRAFTED -> "אנדרדוג"
         Achievement.NIGHT_OWL -> "ינשוף לילה"
+        Achievement.CHAIN_FIRST -> "חוליה ראשונה"
+        Achievement.CHAIN_PERFECT -> "שרשרת מושלמת"
+        Achievement.CHAIN_STREAK_5 -> "מחבר סדרתי"
     }
     override fun achievementDesc(a: Achievement) = when (a) {
         Achievement.FIRST_WIN -> "נצח במשחק הראשון שלך"
@@ -230,6 +248,9 @@ object He : Strings {
         Achievement.RING_HUNTER -> "נצח כשלשחקן הסודי יש טבעת"
         Achievement.UNDRAFTED -> "נצח כשהשחקן הסודי לא נבחר בדראפט"
         Achievement.NIGHT_OWL -> "נצח בין חצות לחמש בבוקר"
+        Achievement.CHAIN_FIRST -> "נצח בשרשרת שחקנים"
+        Achievement.CHAIN_PERFECT -> "נצח בשרשרת במינימום שחקנים ובלי אף טעות"
+        Achievement.CHAIN_STREAK_5 -> "5 ניצחונות ברצף בשרשרת שחקנים"
     }
     override val howToTitle = "איך משחקים"
     override val howToIntro = "יש לך 8 ניחושים למצוא את שחקן ה-NBA הסודי. הקלד שם, בחר מהרשימה, וכל ניחוש מראה כמה קרוב היית."
@@ -293,6 +314,21 @@ object He : Strings {
     override val updateTitle = "יש עדכון חדש!"
     override val updateNow = "עדכן עכשיו"
     override val later = "אחר כך"
+    override val chain = "שרשרת שחקנים"
+    override val chainSub = "חבר בין שני שחקנים דרך חברים לקבוצה"
+    override val chainRules = "כל שחקן בשרשרת צריך לשחק עם הקודם באותה קבוצה ובאותה עונה. כל ניחוש הוא ניסיון – יש לך 5."
+    override val attempts = "ניסיונות"
+    override val chainStart = "התחלה"
+    override val chainGoal = "יעד"
+    override val chainUndo = "הסר את האחרון"
+    override val chainWin = "חיברת!"
+    override val chainLoss = "נגמרו הניסיונות"
+    override val chainSolution = "פתרון אפשרי"
+    override val newRound = "סיבוב חדש"
+    override val chainMisses = "לא התחברו"
+    override fun chainMin(n: Int) = if (n == 1) "אפשר לחבר דרך שחקן אחד באמצע" else "אפשר לחבר דרך $n שחקנים באמצע"
+    override fun chainMiss(a: String, b: String) = "$a לא שיחק עם $b"
+    override fun chainWinSub(between: Int, attempts: Int) = "$between שחקנים בדרך · $attempts/5 ניסיונות"
 }
 
 object En : Strings {
@@ -378,6 +414,9 @@ object En : Strings {
         Achievement.RING_HUNTER -> "Ring chaser"
         Achievement.UNDRAFTED -> "Underdog"
         Achievement.NIGHT_OWL -> "Night owl"
+        Achievement.CHAIN_FIRST -> "First link"
+        Achievement.CHAIN_PERFECT -> "Perfect chain"
+        Achievement.CHAIN_STREAK_5 -> "Serial connector"
     }
     override fun achievementDesc(a: Achievement) = when (a) {
         Achievement.FIRST_WIN -> "Win your first game"
@@ -405,6 +444,9 @@ object En : Strings {
         Achievement.RING_HUNTER -> "Win when the secret player has a ring"
         Achievement.UNDRAFTED -> "Win when the secret player went undrafted"
         Achievement.NIGHT_OWL -> "Win between midnight and 5 a.m."
+        Achievement.CHAIN_FIRST -> "Win a Players Chain round"
+        Achievement.CHAIN_PERFECT -> "Win a chain with the fewest players and no misses"
+        Achievement.CHAIN_STREAK_5 -> "Win 5 Players Chain rounds in a row"
     }
     override val howToTitle = "How to play"
     override val howToIntro = "You have 8 guesses to find the secret NBA player. Type a name, pick from the list, and each guess shows how close you are."
@@ -468,6 +510,21 @@ object En : Strings {
     override val updateTitle = "A new update is out!"
     override val updateNow = "Update now"
     override val later = "Later"
+    override val chain = "Players Chain"
+    override val chainSub = "Connect two players through teammates"
+    override val chainRules = "Each player must have shared a team and season with the one before. Every guess is an attempt – you have 5."
+    override val attempts = "Attempts"
+    override val chainStart = "Start"
+    override val chainGoal = "Goal"
+    override val chainUndo = "Remove last"
+    override val chainWin = "Connected!"
+    override val chainLoss = "Out of attempts"
+    override val chainSolution = "A possible chain"
+    override val newRound = "New round"
+    override val chainMisses = "No link"
+    override fun chainMin(n: Int) = if (n == 1) "Can be done with 1 player in between" else "Can be done with $n players in between"
+    override fun chainMiss(a: String, b: String) = "$a never played with $b"
+    override fun chainWinSub(between: Int, attempts: Int) = "$between in between · $attempts/5 attempts"
 }
 
 fun stringsFor(l: Language): Strings = if (l == Language.HE) He else En

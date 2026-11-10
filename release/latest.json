@@ -1,11 +1,15 @@
 {
- "versionCode": 16,
- "versionName": "1.9.0",
+ "versionCode": 17,
+ "versionName": "2.0.0",
  "apk": "https://raw.githubusercontent.com/elroitouati/NBECK/HEAD/release/DNBA.apk",
  "notesHe": [
-  "הוסרו החשבונות, הטבלאות והתזכורת היומית – חזרה למשחק כמו בגרסה 1.7.1"
+  "משחק חדש: שרשרת שחקנים – חבר בין שני שחקנים דרך חברים לקבוצה, ב-5 ניסיונות",
+  "היסטוריית הקבוצות של כל שחקן מתעדכנת אוטומטית מ-ESPN",
+  "3 הישגים חדשים לשרשרת"
  ],
  "notesEn": [
-  "Accounts, leaderboards and the daily reminder removed – back to the game as in 1.7.1"
+  "New game: Players Chain – connect two players through teammates in 5 attempts",
+  "Every player's team history updates automatically from ESPN",
+  "3 new Players Chain achievements"
  ]
 }

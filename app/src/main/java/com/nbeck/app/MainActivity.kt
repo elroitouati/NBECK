@@ -179,6 +179,7 @@ private fun AppNav(showHowToFirst: Boolean) {
                 onSettings = { nav.navigate("settings") },
                 onHowTo = { nav.navigate("howto") },
                 onArchive = { nav.navigate("archive") },
+                onChain = { nav.navigate("chain") },
             )
         }
         composable(
@@ -190,6 +191,7 @@ private fun AppNav(showHowToFirst: Boolean) {
                 ?: java.time.LocalDate.now()
             GameScreen(mode, onBack = { nav.popBackStack() }, onHome = { nav.popBackStack("home", inclusive = false) }, date = date)
         }
+        composable("chain") { com.nbeck.app.ui.screens.ChainScreen(onBack = { nav.popBackStack() }) }
         composable("archive") {
             ArchiveScreen(onBack = { nav.popBackStack() }, onPlay = { d -> nav.navigate("game/DAILY?date=$d") })
         }
