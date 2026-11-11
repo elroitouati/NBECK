@@ -12,6 +12,17 @@ data class Release(
 object Changelog {
     val releases: List<Release> = listOf(
         Release(
+            19, "2.1.1", "2026-11-11",
+            he = listOf(
+                "שרשרת שחקנים: בלי רמז למספר השחקנים, וכפתור דלג לפני הניחוש הראשון",
+                "במשחק הרגיל: תמונת השחקן נחשפת רק אחרי שכל המשבצות התהפכו",
+            ),
+            en = listOf(
+                "Players Chain: no hint about how many players, and a Skip button before the first guess",
+                "Main game: the player's photo is revealed only after all tiles have flipped",
+            ),
+        ),
+        Release(
             18, "2.1.0", "2026-11-10",
             he = listOf(
                 "עדכון ישר מהאפליקציה: \"עדכן עכשיו\" מוריד ופותח את חלון ההתקנה, בלי דפדפן וקבצים",

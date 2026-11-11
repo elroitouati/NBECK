@@ -1,13 +1,13 @@
 {
- "versionCode": 18,
- "versionName": "2.1.0",
+ "versionCode": 19,
+ "versionName": "2.1.1",
  "apk": "https://raw.githubusercontent.com/elroitouati/NBECK/HEAD/release/DNBA.apk",
  "notesHe": [
-  "עדכון ישר מהאפליקציה: \"עדכן עכשיו\" מוריד ופותח את חלון ההתקנה, בלי דפדפן וקבצים",
-  "שרשרת שחקנים: כפתור ויתור, ואי אפשר יותר למחוק חוליה"
+  "שרשרת שחקנים: בלי רמז למספר השחקנים, וכפתור דלג לפני הניחוש הראשון",
+  "במשחק הרגיל: תמונת השחקן נחשפת רק אחרי שכל המשבצות התהפכו"
  ],
  "notesEn": [
-  "Update right from the app: \"Update now\" downloads and opens the installer – no browser or Files",
-  "Players Chain: give-up button; links can no longer be removed"
+  "Players Chain: no hint about how many players, and a Skip button before the first guess",
+  "Main game: the player's photo is revealed only after all tiles have flipped"
  ]
 }

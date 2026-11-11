@@ -134,7 +134,7 @@ interface Strings {
     val installOpened: String
     val installFailed: String
     val retry: String
-    fun chainMin(n: Int): String
+    val skip: String
     fun chainMiss(a: String, b: String): String
     fun chainWinSub(between: Int, attempts: Int): String
 }
@@ -334,7 +334,7 @@ object He : Strings {
     override val installOpened = "חלון ההתקנה נפתח – לחץ \"עדכן\""
     override val installFailed = "ההורדה נכשלה. בדוק את החיבור ונסה שוב"
     override val retry = "נסה שוב"
-    override fun chainMin(n: Int) = if (n == 1) "אפשר לחבר דרך שחקן אחד באמצע" else "אפשר לחבר דרך $n שחקנים באמצע"
+    override val skip = "דלג"
     override fun chainMiss(a: String, b: String) = "$a לא שיחק עם $b"
     override fun chainWinSub(between: Int, attempts: Int) = "$between שחקנים בדרך · $attempts/5 ניסיונות"
 }
@@ -534,7 +534,7 @@ object En : Strings {
     override val installOpened = "The installer is open – tap \"Update\""
     override val installFailed = "Download failed. Check your connection and try again"
     override val retry = "Try again"
-    override fun chainMin(n: Int) = if (n == 1) "Can be done with 1 player in between" else "Can be done with $n players in between"
+    override val skip = "Skip"
     override fun chainMiss(a: String, b: String) = "$a never played with $b"
     override fun chainWinSub(between: Int, attempts: Int) = "$between in between · $attempts/5 attempts"
 }

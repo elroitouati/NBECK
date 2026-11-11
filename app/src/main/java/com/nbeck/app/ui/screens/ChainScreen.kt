@@ -28,7 +28,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material3.Icon
+import com.nbeck.app.ui.components.pressable
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -226,7 +228,12 @@ fun ChainScreen(onBack: () -> Unit) {
                 ui.round?.let { r ->
                     AttemptBalls(r.attemptsLeft)
                     Spacer(Modifier.width(Space.m))
-                    if (!r.finished) GiveUpButton { confirmGiveUp = true }
+                    when {
+                        r.finished -> {}
+                        // Nothing guessed yet: just swap for two other players, no loss recorded.
+                        r.attempts == 0 -> SkipButton(vm::newRound)
+                        else -> GiveUpButton { confirmGiveUp = true }
+                    }
                 }
             }
             val r = ui.round
@@ -240,8 +247,6 @@ fun ChainScreen(onBack: () -> Unit) {
                 Modifier.weight(1f).verticalScroll(scroll).padding(horizontal = Space.gutter),
             ) {
                 Text(s.chainRules, style = Type.label.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Normal), color = c.text2)
-                Spacer(Modifier.height(4.dp))
-                Text(s.chainMin(r.puzzle.minBetween), style = Type.label, color = c.accent)
                 Spacer(Modifier.height(Space.m))
                 // start → links → (gap) → goal
                 r.chain.forEachIndexed { i, id ->
@@ -386,3 +391,18 @@ private fun EndPanel(r: ChainRound, onNew: () -> Unit, onHome: () -> Unit) {
     }
 }
 
+
+@Composable
+private fun SkipButton(onClick: () -> Unit) {
+    val c = nb
+    val s = LocalStrings.current
+    Row(
+        Modifier.heightIn(min = 40.dp).clip(RoundedCornerShape(Space.rControl)).border(1.dp, c.borderStrong, RoundedCornerShape(Space.rControl))
+            .pressable(onClick = onClick).padding(horizontal = Space.m),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Rounded.SkipNext, null, tint = c.text2, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(s.skip, style = Type.label.copy(fontSize = 14.sp), color = c.text1)
+    }
+}

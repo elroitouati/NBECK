@@ -157,6 +157,13 @@ class ScreenshotTest {
         r = r.guess(path[1], g).first
         app.prefs.saveChainRound(r)
     }
+    @Test fun chain_fresh_he() {
+        runBlocking {
+            val g = com.nbeck.app.game.TeammateGraph(app.players.load())
+            app.prefs.saveChainRound(com.nbeck.app.game.ChainRound(g.newPuzzle(kotlin.random.Random(5))))
+        }
+        shot("18_chain_fresh_he", realWaitMs = 2500) { com.nbeck.app.ui.screens.ChainScreen({}) }
+    }
     @Test fun chain_progress_he() { seedChain(); shot("17_chain_he", realWaitMs = 2500) { com.nbeck.app.ui.screens.ChainScreen({}) } }
 
     @Test fun home_he_dark() = shot("01_home_he_dark") { HomeScreen({}, {}, {}, {}, {}, {}) }

@@ -170,7 +170,8 @@ fun GameScreen(mode: Mode, onBack: () -> Unit, onHome: () -> Unit, date: java.ti
                     }
                 }
             }
-            Header(ui.answer, reveal.value, ui.guessCount, ui.finished)
+            // The mystery figure stays until the winning row has finished flipping; only then the photo fades in.
+            Header(ui.answer, reveal.value, ui.guessCount, ui.finished && (!ui.endedLive || reveal.value > 0f))
             Spacer(Modifier.height(Space.s))
             GuessTable(ui, Modifier.weight(1f), onFlip = { mark ->
                 app.feedback.play(Sfx.FLIP)
@@ -214,7 +215,7 @@ fun GameScreen(mode: Mode, onBack: () -> Unit, onHome: () -> Unit, date: java.ti
 }
 
 @Composable
-private fun Header(answer: Player?, reveal: Float, count: Int, finished: Boolean) {
+private fun Header(answer: Player?, reveal: Float, count: Int, showPhoto: Boolean) {
     val c = nb
     val s = LocalStrings.current
     Row(Modifier.fillMaxWidth().padding(horizontal = Space.gutter), verticalAlignment = Alignment.CenterVertically) {
@@ -228,9 +229,9 @@ private fun Header(answer: Player?, reveal: Float, count: Int, finished: Boolean
             contentAlignment = Alignment.BottomCenter,
         ) {
             // Until the game ends, a generic figure — the real headshot's outline would be a hint.
-            if (finished) {
-                PlayerPhoto(answer, Modifier.fillMaxSize().padding(top = 4.dp).alpha(reveal))
-            } else {
+            // Generic figure (never the real headshot's outline) until the reveal, then a cross-fade to the photo.
+            val mystery = if (showPhoto) 1f - reveal else 1f
+            if (mystery > 0f) Box(Modifier.fillMaxSize().alpha(mystery)) {
                 androidx.compose.foundation.Image(
                     androidx.compose.ui.res.painterResource(com.nbeck.app.R.drawable.ic_silhouette), null,
                     Modifier.fillMaxSize().padding(top = 10.dp),
@@ -238,6 +239,7 @@ private fun Header(answer: Player?, reveal: Float, count: Int, finished: Boolean
                 )
                 Text("?", style = Type.display.copy(fontSize = 44.sp, lineHeight = 44.sp), color = c.led, modifier = Modifier.align(Alignment.Center).padding(bottom = 8.dp))
             }
+            if (showPhoto) PlayerPhoto(answer, Modifier.fillMaxSize().padding(top = 4.dp).alpha(reveal))
         }
         Spacer(Modifier.weight(1f))
         Scoreboard {
