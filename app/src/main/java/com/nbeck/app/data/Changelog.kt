@@ -12,6 +12,23 @@ data class Release(
 object Changelog {
     val releases: List<Release> = listOf(
         Release(
+            21, "2.3.0", "2026-11-15",
+            he = listOf(
+                "פחות או יותר: הנתון של השחקן העליון נשאר גלוי, שחקנים שמתאימים לקטגוריה, בלי אפסים, ו\"שווה\" מול 100%",
+                "קטגוריה מוצגת בקיצור (RPG) והפירוש מתחתיה",
+                "עיצוב מותאם אישית: בוחרים רקע, כרטיסים, צבע ראשי ולוח תוצאות",
+                "תזכורת לאתגר היומי: כל יום ב-15:00, שישי ב-12:00, שבת ב-22:00",
+                "התראה על גרסה חדשה מגיעה תוך כרבע שעה מהפרסום",
+            ),
+            en = listOf(
+                "Higher or Lower: the top player's number stays visible, category-relevant players, no zeros, and EQUAL against 100%",
+                "Category shown as an abbreviation (RPG) with its meaning below",
+                "Custom theme: pick background, cards, accent and scoreboard colors",
+                "Daily challenge reminder: 15:00 every day, Friday 12:00, Saturday 22:00",
+                "New-version notification within about 15 minutes of a release",
+            ),
+        ),
+        Release(
             20, "2.2.0", "2026-11-15",
             he = listOf(
                 "משחקון חדש: פחות או יותר – 20 השוואות של נתוני העונה הנוכחית מ-ESPN",

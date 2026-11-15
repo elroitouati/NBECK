@@ -178,6 +178,11 @@ class ScreenshotTest {
         compose.onRoot().captureRoboImage("build/screenshots/21_hl_summary_he.png")
     }
 
+    @Test fun theme_editor_he() {
+        runBlocking { app.prefs.updateSettings { it.copy(custom = com.nbeck.app.data.CustomTheme(bg = 0xFF0F1626, surface = 0xFF1A2236, accent = 0xFF1D8CF2, led = 0xFF38BDF8)) } }
+        shot("22_theme_editor_he", realWaitMs = 800) { com.nbeck.app.ui.screens.ThemeEditorScreen({}) }
+    }
+
     @Test fun chain_fresh_he() {
         runBlocking {
             val g = com.nbeck.app.game.TeammateGraph(app.players.load())

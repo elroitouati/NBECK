@@ -33,7 +33,12 @@ class HigherLowerVmTest {
 
     private fun wrongFor(vm: HigherLowerViewModel): HlChoice {
         val g = vm.ui.value.game!!
-        return if (g.value(g.bottom) > g.value(g.top)) HlChoice.LOWER else HlChoice.HIGHER
+        val t = g.value(g.top); val b = g.value(g.bottom)
+        return when {
+            b > t -> HlChoice.LOWER
+            b < t -> if (g.capped) HlChoice.EQUAL else HlChoice.HIGHER
+            else -> HlChoice.LOWER
+        }
     }
 
     @Test fun fullGameFlow() {

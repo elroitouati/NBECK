@@ -35,8 +35,7 @@ class NbeckApp : Application(), ImageLoaderFactory {
         appScope.launch { players.load() }
         runCatching { RefreshWorker.schedule(this) }
         runCatching { com.nbeck.app.data.Updates.schedule(this) }
-        // 1.8.x scheduled an evening reminder; that feature is gone, so stop the leftover job.
-        runCatching { androidx.work.WorkManager.getInstance(this).cancelUniqueWork("daily-reminder") }
+        runCatching { com.nbeck.app.data.ReminderWorker.schedule(this) }
     }
 
     /** Headshots are cached on disk so they keep working offline. */

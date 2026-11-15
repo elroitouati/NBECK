@@ -17,7 +17,16 @@ import kotlinx.serialization.json.Json
 import java.time.LocalDate
 
 enum class Language { HE, EN }
-enum class ThemeMode { SYSTEM, DARK, LIGHT }
+enum class ThemeMode { SYSTEM, DARK, LIGHT, CUSTOM }
+
+/** The one custom theme (colors as ARGB). Text colors follow the background automatically. */
+@Serializable
+data class CustomTheme(
+    val bg: Long = 0xFF0B0D12,
+    val surface: Long = 0xFF141821,
+    val accent: Long = 0xFFFF7A1A,
+    val led: Long = 0xFFFFB021,
+)
 
 @Serializable
 data class Settings(
@@ -25,6 +34,8 @@ data class Settings(
     val theme: ThemeMode = ThemeMode.SYSTEM,
     /** False until the player picks a theme; until then the app follows the system setting. */
     val themeChosen: Boolean = false,
+    /** Saved custom theme; null until the player designs one. */
+    val custom: CustomTheme? = null,
     val sound: Boolean = true,
     val haptics: Boolean = true,
     val seenHowTo: Boolean = false,
@@ -34,12 +45,18 @@ data class Settings(
     val notifiedVersion: Int = 0,
     /** Asked for the notification permission (Android 13+) once already. */
     val askedNotifications: Boolean = false,
+    /** Reminder for today's daily (15:00; Friday 12:00; Saturday 22:00) when it isn't played yet. */
+    val dailyReminder: Boolean = true,
 )
 
 /** Theme actually in effect: the system's until the player picks one in Settings. */
 val Settings.effectiveTheme: ThemeMode get() = effectiveThemeOf(this)
 
-fun effectiveThemeOf(s: Settings): ThemeMode = if (s.themeChosen) s.theme else ThemeMode.SYSTEM
+fun effectiveThemeOf(s: Settings): ThemeMode = when {
+    !s.themeChosen -> ThemeMode.SYSTEM
+    s.theme == ThemeMode.CUSTOM && s.custom == null -> ThemeMode.SYSTEM
+    else -> s.theme
+}
 
 /** A game in progress or finished. Daily games carry their date so a new day starts fresh. */
 @Serializable

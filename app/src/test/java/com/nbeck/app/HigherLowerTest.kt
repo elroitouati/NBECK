@@ -26,9 +26,12 @@ class HigherLowerTest {
                 assertEquals(HL_ROUNDS + 1, g.players.size)
                 assertEquals(HL_ROUNDS + 1, g.players.map { it.id }.toSet().size)
                 g.players.zipWithNext().forEach { (a, b) ->
-                    assertNotEquals("${cat.name}: ${a.name} vs ${b.name}", cat.value(a), cat.value(b))
+                    // Equal only when the top is at 100% (then the choice is LOWER / EQUAL).
+                    if (!cat.isCapped(cat.value(a)!!)) assertNotEquals("${cat.name}: ${a.name} vs ${b.name}", cat.value(a), cat.value(b))
                 }
-                assertTrue(g.players.all { cat.value(it) != null })
+                assertTrue(g.players.all { cat.eligible(it) })
+                assertTrue(g.players.none { cat.value(it) == 0.0 })
+                cat.min?.let { m -> assertTrue(g.players.all { cat.value(it)!! >= m }) }
             }
         }
     }
@@ -45,7 +48,7 @@ class HigherLowerTest {
         repeat(HL_ROUNDS) { i ->
             assertEquals(expectedTop.id, g.top.id)
             val bottom = g.bottom
-            val wrong = if (g.value(bottom) > g.value(g.top)) HlChoice.LOWER else HlChoice.HIGHER
+            val wrong = wrongChoice(g)
             val r = g.answer(wrong)!!
             assertFalse(r.correct)
             assertEquals(i + 1, r.number)
@@ -62,8 +65,7 @@ class HigherLowerTest {
     @Test fun scoringAndSummaryValues() {
         val g = HigherLowerGame.create(players, Random(3))
         repeat(HL_ROUNDS) {
-            val right = if (g.value(g.bottom) > g.value(g.top)) HlChoice.HIGHER else HlChoice.LOWER
-            g.answer(if (it % 4 == 0) (if (right == HlChoice.HIGHER) HlChoice.LOWER else HlChoice.HIGHER) else right)
+            g.answer(if (it % 4 == 0) wrongChoice(g) else rightChoice(g))
         }
         assertEquals(15, g.score)
         g.rounds.forEach { r ->
@@ -78,6 +80,38 @@ class HigherLowerTest {
         val second = HigherLowerGame.create(players, Random(2), previousCategory = first.category, avoid = first.players.map { it.id }.toSet())
         assertNotEquals(first.category, second.category)
         assertTrue((first.players.map { it.id } intersect second.players.map { it.id }.toSet()).isEmpty())
+    }
+
+    private fun rightChoice(g: HigherLowerGame): HlChoice {
+        val t = g.value(g.top); val b = g.value(g.bottom)
+        return when { b > t -> HlChoice.HIGHER; b < t -> HlChoice.LOWER; else -> HlChoice.EQUAL }
+    }
+    private fun wrongChoice(g: HigherLowerGame): HlChoice = when (rightChoice(g)) {
+        HlChoice.HIGHER -> HlChoice.LOWER
+        HlChoice.LOWER -> if (g.capped) HlChoice.EQUAL else HlChoice.HIGHER
+        HlChoice.EQUAL -> HlChoice.LOWER
+    }
+
+    /** A 100% top: the answer is LOWER or EQUAL, and EQUAL is right when the bottom is 100% too. */
+    @Test fun hundredPercentTop() {
+        val top = player(id = "t").copy(ftPct = 100.0)
+        val same = player(id = "s").copy(ftPct = 100.0)
+        val lower = player(id = "l").copy(ftPct = 85.0)
+        val g = HigherLowerGame.of(HlCategory.FT_PCT, listOf(top, same, lower) + List(19) { player(id = "x$it").copy(ftPct = 70.0 + it) })
+        assertTrue(g.capped)
+        assertTrue(g.answer(HlChoice.EQUAL)!!.correct)       // 100 vs 100
+        assertTrue(g.capped)                                  // the 100% bottom moved up
+        assertTrue(g.answer(HlChoice.LOWER)!!.correct)       // 100 vs 85
+        assertFalse(g.capped)
+    }
+
+    @Test fun thresholdsKeepItRelevant() {
+        val blockers = players.filter { HlCategory.BPG.eligible(it) }
+        assertTrue(blockers.size >= HL_ROUNDS + 1)
+        assertTrue(blockers.all { it.bpg!! >= 0.8 })
+        assertFalse(HlCategory.BPG.eligible(player().copy(bpg = 0.0)))
+        assertFalse(HlCategory.THREE_PCT.eligible(player().copy(tpPct = 0.0)))
+        assertTrue(HlCategory.THREE_PCT.eligible(player().copy(tpPct = 12.5)))   // % categories: everyone with attempts
     }
 
     @Test fun percentagesNeedAttempts() {

@@ -49,7 +49,7 @@ import com.nbeck.app.ui.theme.nb
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsScreen(onBack: () -> Unit, onVersions: () -> Unit = {}) {
+fun SettingsScreen(onBack: () -> Unit, onVersions: () -> Unit = {}, onCustomTheme: () -> Unit = {}) {
     val app = LocalContext.current.applicationContext as NbeckApp
     val s = LocalStrings.current
     val c = nb
@@ -71,14 +71,22 @@ fun SettingsScreen(onBack: () -> Unit, onVersions: () -> Unit = {}) {
                 }
                 Section(s.theme)
                 // Follows the phone's dark/light setting until the player picks a theme here.
-                val themes = listOf(ThemeMode.SYSTEM, ThemeMode.DARK, ThemeMode.LIGHT)
-                Segmented(listOf(s.themeSystem, s.themeDark, s.themeLight), themes.indexOf(settings.effectiveTheme)) { i ->
-                    update { it.copy(theme = themes[i], themeChosen = true) }
+                val themes = listOf(ThemeMode.SYSTEM, ThemeMode.DARK, ThemeMode.LIGHT, ThemeMode.CUSTOM)
+                Segmented(listOf(s.themeSystem, s.themeDark, s.themeLight, s.themeCustomShort), themes.indexOf(settings.effectiveTheme)) { i ->
+                    // Custom with nothing designed yet opens the editor; saving there switches to it.
+                    if (themes[i] == ThemeMode.CUSTOM && settings.custom == null) onCustomTheme()
+                    else update { it.copy(theme = themes[i], themeChosen = true) }
+                }
+                if (settings.custom != null) {
+                    Spacer(Modifier.height(Space.s))
+                    NbButton(s.editCustom, Modifier.fillMaxWidth(), kind = ButtonKind.GHOST, onClick = onCustomTheme)
                 }
                 Spacer(Modifier.height(Space.xl))
                 Toggle(s.sounds, settings.sound) { v -> update { it.copy(sound = v) } }
                 Spacer(Modifier.height(Space.s))
                 Toggle(s.haptics, settings.haptics) { v -> update { it.copy(haptics = v) } }
+                Spacer(Modifier.height(Space.s))
+                Toggle(s.dailyReminder, settings.dailyReminder) { v -> update { it.copy(dailyReminder = v) } }
                 Section(s.dataSection)
                 Text(s.dataInfo(players.size), style = Type.body, color = c.text2)
                 Spacer(Modifier.height(Space.m))

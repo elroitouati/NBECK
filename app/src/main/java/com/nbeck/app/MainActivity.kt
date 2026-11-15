@@ -136,7 +136,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
             CompositionLocalProvider(LocalStrings provides stringsFor(st.language), LocalLayoutDirection provides dir) {
-                NbeckTheme(st.effectiveTheme) {
+                NbeckTheme(st.effectiveTheme, st.custom) {
                     AppNav(showHowToFirst = !st.seenHowTo)
                     AchievementToastHost()
                     if (whatsNew.isNotEmpty() && !showIntro) {
@@ -221,7 +221,10 @@ private fun AppNav(showHowToFirst: Boolean) {
         }
         composable("stats") { StatsScreen(onBack = { nav.popBackStack() }, onPlay = { m -> nav.navigate("game/${m.name}") { popUpTo("home") } }) }
         composable("achievements") { AchievementsScreen(onBack = { nav.popBackStack() }) }
-        composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }, onVersions = { nav.navigate("versions") }) }
+        composable("settings") {
+            SettingsScreen(onBack = { nav.popBackStack() }, onVersions = { nav.navigate("versions") }, onCustomTheme = { nav.navigate("theme-editor") })
+        }
+        composable("theme-editor") { com.nbeck.app.ui.screens.ThemeEditorScreen(onDone = { nav.popBackStack() }) }
         composable("versions") { com.nbeck.app.ui.screens.VersionsScreen(onBack = { nav.popBackStack() }) }
     }
 }

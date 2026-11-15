@@ -108,10 +108,13 @@ object Updates {
     }
 
     fun schedule(context: Context) {
-        val req = PeriodicWorkRequestBuilder<UpdateWorker>(6, TimeUnit.HOURS)
+        // 15 minutes is the shortest interval Android allows for background work; with no server
+        // to push from, that's how soon a new release is noticed.
+        val req = PeriodicWorkRequestBuilder<UpdateWorker>(15, TimeUnit.MINUTES)
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
             .build()
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork("update-check", ExistingPeriodicWorkPolicy.KEEP, req)
+        // UPDATE replaces the old 6-hour schedule on devices that already have it.
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork("update-check", ExistingPeriodicWorkPolicy.UPDATE, req)
     }
 }
 

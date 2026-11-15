@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
+import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -209,11 +210,10 @@ private fun Play(game: HigherLowerGame, ui: HlUi, onAnswer: (HlChoice) -> Unit) 
     Column(Modifier.fillMaxSize().padding(horizontal = Space.gutter)) {
         // The category, fixed for the whole game.
         Scoreboard(Modifier.fillMaxWidth()) {
+            // The abbreviation big (RPG), what it means small underneath.
             Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(game.category.en.uppercase(), style = Type.display.copy(fontSize = 26.sp, lineHeight = 28.sp, letterSpacing = 1.sp, textDirection = TextDirection.Ltr), color = c.led)
-                if (s.hlCategory(game.category) != game.category.en) {
-                    Text(s.hlCategory(game.category), style = Type.label, color = Color(0xFFB8BEC9))
-                }
+                LedText(game.category.abbr, style = Type.led.copy(fontSize = 30.sp, lineHeight = 32.sp))
+                Text(s.hlCategory(game.category), style = Type.label, color = Color(0xFFB8BEC9))
             }
         }
         Spacer(Modifier.height(Space.m))
@@ -228,7 +228,8 @@ private fun Play(game: HigherLowerGame, ui: HlUi, onAnswer: (HlChoice) -> Unit) 
             label = "pair",
         ) { (t, b) ->
             Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
-                PlayerSlot(t, if (revealing) ui.last?.topValue?.let(game.category::format) else null, Modifier.weight(1f), highlight = false)
+                // The top player's number is always visible (it was revealed when they were the bottom).
+                PlayerSlot(t, game.category.format(game.category.value(t)!!), Modifier.weight(1f), highlight = false)
                 Text(s.hlQuestion, style = Type.bodyStrong, color = c.text2, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 PlayerSlot(b, if (revealing) ui.last?.bottomValue?.let(game.category::format) else null, Modifier.weight(1f), highlight = true)
             }
@@ -240,10 +241,13 @@ private fun Play(game: HigherLowerGame, ui: HlUi, onAnswer: (HlChoice) -> Unit) 
                 Text(if (ok) "✓ ${s.hlCorrect}" else "✕ ${s.hlWrong}", style = Type.title, color = if (ok) c.green else Color(0xFFE5484D))
             }
         }
-        // HIGHER / LOWER — fixed order in both languages.
+        // HIGHER / LOWER — fixed order in both languages. Against a 100% top nothing is higher,
+        // so the choice becomes EQUAL / LOWER.
+        val capped = game.category.isCapped(game.category.value(top)!!)
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Row(Modifier.fillMaxWidth().padding(bottom = Space.m), horizontalArrangement = Arrangement.spacedBy(Space.m)) {
-                ChoiceButton("HIGHER", Icons.Rounded.ArrowUpward, enabled = !revealing, modifier = Modifier.weight(1f)) { onAnswer(HlChoice.HIGHER) }
+                if (capped) ChoiceButton("EQUAL", Icons.Rounded.DragHandle, enabled = !revealing, modifier = Modifier.weight(1f)) { onAnswer(HlChoice.EQUAL) }
+                else ChoiceButton("HIGHER", Icons.Rounded.ArrowUpward, enabled = !revealing, modifier = Modifier.weight(1f)) { onAnswer(HlChoice.HIGHER) }
                 ChoiceButton("LOWER", Icons.Rounded.ArrowDownward, enabled = !revealing, modifier = Modifier.weight(1f)) { onAnswer(HlChoice.LOWER) }
             }
         }
@@ -355,7 +359,7 @@ private fun RoundRow(r: HlRound) {
                 contentAlignment = Alignment.Center,
             ) { Text(if (r.correct) "✓" else "✕", style = Type.bodyStrong, color = if (r.correct) c.onGreen else Color.White) }
             Spacer(Modifier.width(Space.s))
-            Text("${s.hlRound} ${r.number} · ${s.hlCategory(r.category)}", style = Type.bodyStrong, color = c.text1, modifier = Modifier.weight(1f))
+            Text("${s.hlRound} ${r.number} · ${r.category.abbr}", style = Type.bodyStrong, color = c.text1, modifier = Modifier.weight(1f))
             Text("${s.hlYourPick}: ${r.choice.name}", style = Type.label, color = c.text2)
         }
         Spacer(Modifier.height(Space.s))

@@ -151,15 +151,47 @@ object Motion {
 
 val LocalNb = staticCompositionLocalOf { DarkColors }
 
+/** Relative luminance (0 dark … 1 light), for picking readable text on a chosen color. */
+fun Color.lum(): Float = 0.2126f * red + 0.7152f * green + 0.0722f * blue
+
+private fun mix(a: Color, b: Color, t: Float) = Color(
+    red = a.red + (b.red - a.red) * t, green = a.green + (b.green - a.green) * t, blue = a.blue + (b.blue - a.blue) * t, alpha = 1f,
+)
+
+/**
+ * Colors for the player's custom theme: their background, cards, accent and scoreboard LED on top of
+ * the dark or light base (chosen by the background's brightness), so text stays readable. The
+ * green / yellow / gray grading colors are kept — they carry the game's meaning.
+ */
+fun customColors(t: com.nbeck.app.data.CustomTheme): NbColors {
+    val bg = Color(t.bg); val surface = Color(t.surface); val accent = Color(t.accent); val led = Color(t.led)
+    val base = if (bg.lum() < 0.5f) DarkColors else LightColors
+    return base.copy(
+        bg = bg,
+        surface1 = surface,
+        surface2 = mix(surface, base.text1, 0.07f),
+        accent = accent,
+        onAccent = if (accent.lum() > 0.55f) Color(0xFF14181D) else Color(0xFFF7F7F7),
+        led = led,
+        ledDim = led.copy(alpha = 0.13f),
+    )
+}
+
 @Composable
-fun NbeckTheme(mode: ThemeMode, content: @Composable () -> Unit) {
-    val dark = when (mode) {
-        ThemeMode.DARK -> true
-        ThemeMode.LIGHT -> false
-        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+fun NbeckTheme(mode: ThemeMode, custom: com.nbeck.app.data.CustomTheme? = null, content: @Composable () -> Unit) {
+    val c = when (mode) {
+        ThemeMode.DARK -> DarkColors
+        ThemeMode.LIGHT -> LightColors
+        ThemeMode.SYSTEM -> if (isSystemInDarkTheme()) DarkColors else LightColors
+        ThemeMode.CUSTOM -> custom?.let(::customColors) ?: if (isSystemInDarkTheme()) DarkColors else LightColors
     }
-    val c = if (dark) DarkColors else LightColors
-    val scheme = if (dark) darkColorScheme(
+    NbeckColors(c, content)
+}
+
+/** Applies a color set (also used by the custom-theme editor for its live preview). */
+@Composable
+fun NbeckColors(c: NbColors, content: @Composable () -> Unit) {
+    val scheme = if (c.isDark) darkColorScheme(
         primary = c.accent, onPrimary = c.onAccent, background = c.bg, onBackground = c.text1,
         surface = c.surface1, onSurface = c.text1, surfaceVariant = c.surface2, onSurfaceVariant = c.text2,
         outline = c.borderStrong,

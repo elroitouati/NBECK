@@ -135,6 +135,18 @@ interface Strings {
     val installFailed: String
     val retry: String
     val skip: String
+    val themeCustom: String
+    val themeCustomShort: String
+    val themeEditor: String
+    val editCustom: String
+    val tBackground: String
+    val tCards: String
+    val tAccent: String
+    val tLed: String
+    val saveTheme: String
+    val themeHint: String
+    val previewCard: String
+    val dailyReminder: String
     val hl: String
     val hlSub: String
     val hlQuestion: String
@@ -348,6 +360,18 @@ object He : Strings {
     override val installFailed = "ההורדה נכשלה. בדוק את החיבור ונסה שוב"
     override val retry = "נסה שוב"
     override val skip = "דלג"
+    override val themeCustom = "מותאם אישית"
+    override val themeCustomShort = "מותאם"
+    override val themeEditor = "העיצוב שלי"
+    override val editCustom = "ערוך את העיצוב המותאם אישית"
+    override val tBackground = "רקע"
+    override val tCards = "כרטיסים"
+    override val tAccent = "צבע ראשי (כפתורים)"
+    override val tLed = "לוח התוצאות"
+    override val saveTheme = "שמור את העיצוב"
+    override val themeHint = "בחר צבעים – כל המסך מתעדכן בזמן אמת. העיצוב נשמר בשם \"מותאם אישית\"."
+    override val previewCard = "ככה ייראה כרטיס"
+    override val dailyReminder = "תזכורת לאתגר היומי"
     override val hl = "פחות או יותר"
     override val hlSub = "יותר או פחות מהשחקן שמעליו? 20 השוואות"
     override val hlQuestion = "לשחקן התחתון יש יותר או פחות?"
@@ -571,6 +595,18 @@ object En : Strings {
     override val installFailed = "Download failed. Check your connection and try again"
     override val retry = "Try again"
     override val skip = "Skip"
+    override val themeCustom = "Custom"
+    override val themeCustomShort = "Custom"
+    override val themeEditor = "My theme"
+    override val editCustom = "Edit the custom theme"
+    override val tBackground = "Background"
+    override val tCards = "Cards"
+    override val tAccent = "Accent (buttons)"
+    override val tLed = "Scoreboard"
+    override val saveTheme = "Save theme"
+    override val themeHint = "Pick colors – the whole screen updates live. Saved as \"Custom\"."
+    override val previewCard = "This is how a card looks"
+    override val dailyReminder = "Daily challenge reminder"
     override val hl = "Higher or Lower"
     override val hlSub = "More or less than the player above? 20 comparisons"
     override val hlQuestion = "Does the bottom player have more or less?"
