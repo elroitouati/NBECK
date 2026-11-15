@@ -135,6 +135,19 @@ interface Strings {
     val installFailed: String
     val retry: String
     val skip: String
+    val hl: String
+    val hlSub: String
+    val hlQuestion: String
+    val hlScore: String
+    val hlCorrect: String
+    val hlWrong: String
+    val hlCorrectCount: String
+    val hlWrongCount: String
+    val hlRound: String
+    val hlYourPick: String
+    val newGame: String
+    val quit: String
+    fun hlCategory(c: com.nbeck.app.game.HlCategory): String
     fun chainMiss(a: String, b: String): String
     fun chainWinSub(between: Int, attempts: Int): String
 }
@@ -335,6 +348,29 @@ object He : Strings {
     override val installFailed = "ההורדה נכשלה. בדוק את החיבור ונסה שוב"
     override val retry = "נסה שוב"
     override val skip = "דלג"
+    override val hl = "פחות או יותר"
+    override val hlSub = "יותר או פחות מהשחקן שמעליו? 20 השוואות"
+    override val hlQuestion = "לשחקן התחתון יש יותר או פחות?"
+    override val hlScore = "ניקוד"
+    override val hlCorrect = "צדקת!"
+    override val hlWrong = "טעית"
+    override val hlCorrectCount = "תשובות נכונות"
+    override val hlWrongCount = "תשובות שגויות"
+    override val hlRound = "סיבוב"
+    override val hlYourPick = "בחרת"
+    override val newGame = "משחק חדש"
+    override val quit = "QUIT"
+    override fun hlCategory(c: com.nbeck.app.game.HlCategory) = when (c) {
+        com.nbeck.app.game.HlCategory.PPG -> "נקודות למשחק"
+        com.nbeck.app.game.HlCategory.RPG -> "ריבאונדים למשחק"
+        com.nbeck.app.game.HlCategory.APG -> "אסיסטים למשחק"
+        com.nbeck.app.game.HlCategory.SPG -> "חטיפות למשחק"
+        com.nbeck.app.game.HlCategory.BPG -> "חסימות למשחק"
+        com.nbeck.app.game.HlCategory.FG_PCT -> "אחוזי קליעה מהשדה"
+        com.nbeck.app.game.HlCategory.THREE_PCT -> "אחוזי קליעה לשלוש"
+        com.nbeck.app.game.HlCategory.FT_PCT -> "אחוזי קליעה מהעונשין"
+        com.nbeck.app.game.HlCategory.TOPG -> "איבודים למשחק"
+    }
     override fun chainMiss(a: String, b: String) = "$a לא שיחק עם $b"
     override fun chainWinSub(between: Int, attempts: Int) = "$between שחקנים בדרך · $attempts/5 ניסיונות"
 }
@@ -535,6 +571,19 @@ object En : Strings {
     override val installFailed = "Download failed. Check your connection and try again"
     override val retry = "Try again"
     override val skip = "Skip"
+    override val hl = "Higher or Lower"
+    override val hlSub = "More or less than the player above? 20 comparisons"
+    override val hlQuestion = "Does the bottom player have more or less?"
+    override val hlScore = "Score"
+    override val hlCorrect = "Correct!"
+    override val hlWrong = "Wrong"
+    override val hlCorrectCount = "Correct"
+    override val hlWrongCount = "Wrong"
+    override val hlRound = "Round"
+    override val hlYourPick = "You picked"
+    override val newGame = "New game"
+    override val quit = "QUIT"
+    override fun hlCategory(c: com.nbeck.app.game.HlCategory) = c.en
     override fun chainMiss(a: String, b: String) = "$a never played with $b"
     override fun chainWinSub(between: Int, attempts: Int) = "$between in between · $attempts/5 attempts"
 }

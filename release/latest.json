@@ -1,13 +1,13 @@
 {
- "versionCode": 19,
- "versionName": "2.1.1",
+ "versionCode": 20,
+ "versionName": "2.2.0",
  "apk": "https://raw.githubusercontent.com/elroitouati/NBECK/HEAD/release/DNBA.apk",
  "notesHe": [
-  "שרשרת שחקנים: בלי רמז למספר השחקנים, וכפתור דלג לפני הניחוש הראשון",
-  "במשחק הרגיל: תמונת השחקן נחשפת רק אחרי שכל המשבצות התהפכו"
+  "משחקון חדש: פחות או יותר – 20 השוואות של נתוני העונה הנוכחית מ-ESPN",
+  "נתוני עונה מלאים לכל שחקן: חטיפות, חסימות, איבודים ואחוזי קליעה"
  ],
  "notesEn": [
-  "Players Chain: no hint about how many players, and a Skip button before the first guess",
-  "Main game: the player's photo is revealed only after all tiles have flipped"
+  "New mini-game: Higher or Lower – 20 comparisons of current-season ESPN stats",
+  "Full season stat line per player: steals, blocks, turnovers and shooting %"
  ]
 }

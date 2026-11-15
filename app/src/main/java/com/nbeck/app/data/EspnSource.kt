@@ -75,7 +75,14 @@ class EspnSource(
                     country = p.country ?: known[p.id]?.country,
                 )
             }
-                .map { p -> st[p.id]?.let { p.copy(ppg = it.ppg, rpg = it.rpg, apg = it.apg, gp = it.gp) } ?: p }
+                .map { p ->
+                    st[p.id]?.let {
+                        p.copy(
+                            ppg = it.ppg, rpg = it.rpg, apg = it.apg, gp = it.gp,
+                            spg = it.spg, bpg = it.bpg, topg = it.topg, fgPct = it.fgPct, tpPct = it.tpPct, ftPct = it.ftPct,
+                        )
+                    } ?: p
+                }
                 .sortedBy { it.id }
             PlayerBundle(source = "ESPN public site API", fetchedAt = Instant.now().toString(), players = players)
         }
@@ -167,7 +174,10 @@ class EspnSource(
     private fun draftYear(id: String): Int? =
         runCatching { get("$CORE/athletes/$id").obj("draft")?.str("year")?.toIntOrNull() }.getOrNull()
 
-    private class Line(val ppg: Double?, val rpg: Double?, val apg: Double?, val gp: Int)
+    private class Line(
+        val ppg: Double?, val rpg: Double?, val apg: Double?, val gp: Int,
+        val spg: Double?, val bpg: Double?, val topg: Double?, val fgPct: Double?, val tpPct: Double?, val ftPct: Double?,
+    )
 
     private fun stats(): Map<String, Line> {
         val out = HashMap<String, Line>()
@@ -186,9 +196,15 @@ class EspnSource(
                     ns.zip(co.arr("totals").map { it.jsonPrimitive.content }).forEach { (k, v) -> vals.putIfAbsent(k, v) }
                 }
                 val id = r.obj("athlete")?.str("id") ?: continue
+                fun d(k: String) = vals[k]?.toDoubleOrNull()
+                // A shooting % with no attempts is not a stat (ESPN shows 0.0): keep it missing.
+                fun pct(k: String, attempts: String) = d(k)?.takeIf { (d(attempts) ?: 0.0) > 0.0 }
                 out[id] = Line(
-                    vals["avgPoints"]?.toDoubleOrNull(), vals["avgRebounds"]?.toDoubleOrNull(),
-                    vals["avgAssists"]?.toDoubleOrNull(), vals["gamesPlayed"]?.toDoubleOrNull()?.toInt() ?: 0,
+                    d("avgPoints"), d("avgRebounds"), d("avgAssists"), d("gamesPlayed")?.toInt() ?: 0,
+                    d("avgSteals"), d("avgBlocks"), d("avgTurnovers"),
+                    pct("fieldGoalPct", "fieldGoalsAttempted"),
+                    pct("threePointFieldGoalPct", "threePointFieldGoalsAttempted"),
+                    pct("freeThrowPct", "freeThrowsAttempted"),
                 )
             }
             val pages = d.obj("pagination")?.str("pages")?.toIntOrNull() ?: 1

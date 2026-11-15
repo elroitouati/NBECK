@@ -12,6 +12,17 @@ data class Release(
 object Changelog {
     val releases: List<Release> = listOf(
         Release(
+            20, "2.2.0", "2026-11-15",
+            he = listOf(
+                "משחקון חדש: פחות או יותר – 20 השוואות של נתוני העונה הנוכחית מ-ESPN",
+                "נתוני עונה מלאים לכל שחקן: חטיפות, חסימות, איבודים ואחוזי קליעה",
+            ),
+            en = listOf(
+                "New mini-game: Higher or Lower – 20 comparisons of current-season ESPN stats",
+                "Full season stat line per player: steals, blocks, turnovers and shooting %",
+            ),
+        ),
+        Release(
             19, "2.1.1", "2026-11-11",
             he = listOf(
                 "שרשרת שחקנים: בלי רמז למספר השחקנים, וכפתור דלג לפני הניחוש הראשון",

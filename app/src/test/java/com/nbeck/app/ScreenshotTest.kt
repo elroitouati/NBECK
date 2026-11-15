@@ -5,6 +5,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.test.core.app.ApplicationProvider
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -157,6 +158,26 @@ class ScreenshotTest {
         r = r.guess(path[1], g).first
         app.prefs.saveChainRound(r)
     }
+    @Test fun higher_lower_he() {
+        compose.setContent {
+            CompositionLocalProvider(LocalStrings provides stringsFor(Language.HE), LocalLayoutDirection provides LayoutDirection.Rtl) {
+                NbeckTheme(ThemeMode.DARK) { com.nbeck.app.ui.screens.HigherLowerScreen({}) }
+            }
+        }
+        val looper = org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+        repeat(30) { Thread.sleep(100); looper.idle(); compose.mainClock.advanceTimeBy(100); compose.waitForIdle() }
+        compose.onRoot().captureRoboImage("build/screenshots/19_hl_play_he.png")
+        compose.onNode(androidx.compose.ui.test.hasText("HIGHER")).performClick()
+        compose.mainClock.advanceTimeBy(400); compose.waitForIdle()
+        compose.onRoot().captureRoboImage("build/screenshots/20_hl_reveal_he.png")
+        repeat(20) {
+            looper.idleFor(java.time.Duration.ofMillis(1100)); compose.mainClock.advanceTimeBy(600); compose.waitForIdle()
+            runCatching { compose.onNode(androidx.compose.ui.test.hasText("LOWER")).performClick() }
+        }
+        looper.idleFor(java.time.Duration.ofMillis(1100)); compose.mainClock.advanceTimeBy(1000); compose.waitForIdle()
+        compose.onRoot().captureRoboImage("build/screenshots/21_hl_summary_he.png")
+    }
+
     @Test fun chain_fresh_he() {
         runBlocking {
             val g = com.nbeck.app.game.TeammateGraph(app.players.load())

@@ -174,7 +174,15 @@ def stats():
             def f(k):
                 try: return float(vals.get(k))
                 except (TypeError, ValueError): return None
-            res[str(row["athlete"]["id"])] = {"ppg": f("avgPoints"), "rpg": f("avgRebounds"), "apg": f("avgAssists"), "gp": int(f("gamesPlayed") or 0)}
+            # A shooting % with no attempts is not a stat (ESPN shows 0.0): keep it missing.
+            pct = lambda k, att: f(k) if (f(att) or 0) > 0 else None
+            res[str(row["athlete"]["id"])] = {
+                "ppg": f("avgPoints"), "rpg": f("avgRebounds"), "apg": f("avgAssists"), "gp": int(f("gamesPlayed") or 0),
+                "spg": f("avgSteals"), "bpg": f("avgBlocks"), "topg": f("avgTurnovers"),
+                "fgPct": pct("fieldGoalPct", "fieldGoalsAttempted"),
+                "tpPct": pct("threePointFieldGoalPct", "threePointFieldGoalsAttempted"),
+                "ftPct": pct("freeThrowPct", "freeThrowsAttempted"),
+            }
         if page >= d.get("pagination", {}).get("pages", 1): break
         page += 1
     return res
@@ -256,13 +264,14 @@ def main():
         # Current team counts for this season even before the player's first game.
         p["stints"] = sorted(set(hist[p["id"]]) | {f"{season}:{p['teamId']}"})
         p["ring"] = p["id"] in ring_ids
-        p.update(st.get(p["id"], {"ppg": None, "rpg": None, "apg": None, "gp": 0}))
+        p.update(st.get(p["id"], {"ppg": None, "rpg": None, "apg": None, "gp": 0,
+                                  "spg": None, "bpg": None, "topg": None, "fgPct": None, "tpPct": None, "ftPct": None}))
     players.sort(key=lambda p: p["id"])
     if len(players) < 300:
         sys.exit(f"only {len(players)} players — refusing to write")
     now = datetime.datetime.now(timezone.utc).isoformat(timespec="seconds")
     with open(os.path.join(ASSETS, "players.json"), "w", encoding="utf-8") as fh:
-        json.dump({"schema": 5, "source": "ESPN public API", "fetchedAt": now, "players": players}, fh, ensure_ascii=False, separators=(",", ":"))
+        json.dump({"schema": 6, "source": "ESPN public API", "fetchedAt": now, "players": players}, fh, ensure_ascii=False, separators=(",", ":"))
     with open(os.path.join(ASSETS, "corrections.json"), "w", encoding="utf-8") as fh:
         json.dump(fixes, fh, ensure_ascii=False, indent=1, sort_keys=True)
     with open(os.path.join(ASSETS, "rings.json"), "w", encoding="utf-8") as fh:

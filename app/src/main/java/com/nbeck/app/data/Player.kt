@@ -29,6 +29,14 @@ data class Player(
     val rpg: Double? = null,
     val apg: Double? = null,
     val gp: Int = 0,
+    // Current-season per-game averages and shooting %, exactly as ESPN shows them (one decimal).
+    // Null = no value (hasn't played, or a % with no attempts).
+    val spg: Double? = null,
+    val bpg: Double? = null,
+    val topg: Double? = null,
+    val fgPct: Double? = null,
+    val tpPct: Double? = null,
+    val ftPct: Double? = null,
 ) {
     val team: Team get() = Teams[teamId]
     val jerseyNumber: Int? get() = jersey?.toIntOrNull()
@@ -38,11 +46,11 @@ data class Player(
 
 @Serializable
 data class PlayerBundle(
-    /** Bumped when fields are added; older caches are ignored (v2: draft year and ring; v3: hand-filled countries; v4: checked jerseys, dates, countries; v5: team history). */
+    /** Bumped when fields are added; older caches are ignored (v2: draft year and ring; v3: hand-filled countries; v4: checked jerseys, dates, countries; v5: team history; v6: full season stat line). */
     val schema: Int = 1,
     val source: String = "",
     val fetchedAt: String = "",
     val players: List<Player>,
 )
 
-const val PLAYER_SCHEMA = 5
+const val PLAYER_SCHEMA = 6
