@@ -1,5 +1,6 @@
 package com.nbeck.app.ui.screens
 
+import androidx.compose.material.icons.rounded.DeleteForever
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
@@ -86,7 +87,10 @@ fun SettingsScreen(onBack: () -> Unit, onVersions: () -> Unit = {}, onCustomThem
                 Spacer(Modifier.height(Space.s))
                 Toggle(s.haptics, settings.haptics) { v -> update { it.copy(haptics = v) } }
                 Spacer(Modifier.height(Space.s))
+                Section(s.notifSection)
                 Toggle(s.dailyReminder, settings.dailyReminder) { v -> update { it.copy(dailyReminder = v) } }
+                Spacer(Modifier.height(Space.s))
+                com.nbeck.app.ui.screens.NotificationSettings()
                 Section(s.dataSection)
                 Text(s.dataInfo(players.size), style = Type.body, color = c.text2)
                 Spacer(Modifier.height(Space.m))
@@ -134,8 +138,19 @@ fun SettingsScreen(onBack: () -> Unit, onVersions: () -> Unit = {}, onCustomThem
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { confirmDelete = false },
             containerColor = c.surface1,
+            icon = { androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.DeleteForever, null, tint = androidx.compose.ui.graphics.Color(0xFFE5484D)) },
             title = { Text(s.deleteTitle, style = Type.title, color = c.text1) },
-            text = { Text(s.deleteBody, style = Type.body, color = c.text2) },
+            text = {
+                Column {
+                    Text(s.deleteWhat, style = Type.bodyStrong, color = c.text1)
+                    Spacer(Modifier.height(Space.s))
+                    Text(s.deleteList, style = Type.body, color = c.text2)
+                    Spacer(Modifier.height(Space.m))
+                    Text(s.deleteBody, style = Type.body, color = c.text2)
+                    Spacer(Modifier.height(Space.m))
+                    Text(s.deleteSure, style = Type.bodyStrong, color = c.text1)
+                }
+            },
             confirmButton = {
                 androidx.compose.material3.TextButton(onClick = {
                     confirmDelete = false

@@ -46,6 +46,13 @@ data class CustomTheme(
     val green: Long? = null,
     val yellow: Long? = null,
     val gray: Long? = null,
+    /** Icon colors of the game cards on the home screen. */
+    val iconFree: Long? = null,
+    val iconChain: Long? = null,
+    val iconHl: Long? = null,
+    val iconArchive: Long? = null,
+    val iconStats: Long? = null,
+    val iconAch: Long? = null,
 )
 
 @Serializable
@@ -67,6 +74,10 @@ data class Settings(
     val askedNotifications: Boolean = false,
     /** Reminder for today's daily (15:00; Friday 12:00; Saturday 22:00) when it isn't played yet. */
     val dailyReminder: Boolean = true,
+    /** Date (ISO) the daily reminder was last shown, so it's sent at most once a day. */
+    val remindedOn: String? = null,
+    /** Date (ISO) the "allow notifications" prompt was last shown (at most once a day). */
+    val notifPromptOn: String? = null,
 )
 
 /** Theme actually in effect: the system's until the player picks one in Settings. */

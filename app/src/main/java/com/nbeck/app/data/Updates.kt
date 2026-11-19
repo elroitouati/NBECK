@@ -55,7 +55,7 @@ data class LatestRelease(
  */
 object Updates {
     private const val MANIFEST = "https://raw.githubusercontent.com/elroitouati/NBECK/HEAD/release/latest.json"
-    private const val CHANNEL = "updates"
+    private const val CHANNEL = "updates_v2"
     private const val NOTIFICATION_ID = 1001
     private val json = Json { ignoreUnknownKeys = true }
     private val client = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS).readTimeout(20, TimeUnit.SECONDS).build()
@@ -70,14 +70,21 @@ object Updates {
 
     fun isNewer(r: LatestRelease?) = r != null && r.versionCode > BuildConfig.VERSION_CODE
 
-    /** Fetch; remember the result for Settings; notify once per new version. */
-    suspend fun check(context: Context) {
+    /**
+     * Fetch; remember the result for Settings; notify once per new version. [notify] = false for the
+     * check made when the app opens: the in-app popup shows it, so no notification then.
+     */
+    suspend fun check(context: Context, notify: Boolean = true) {
         val app = context.applicationContext as NbeckApp
         val latest = fetch() ?: return
         app.latestRelease.value = latest
         if (!isNewer(latest)) return
         val settings = app.prefs.settings.first()
         if (settings.notifiedVersion >= latest.versionCode) return
+        if (!notify) {
+            app.prefs.updateSettings { it.copy(notifiedVersion = latest.versionCode) }
+            return
+        }
         if (notify(context, latest, settings.language)) app.prefs.updateSettings { it.copy(notifiedVersion = latest.versionCode) }
     }
 
@@ -98,7 +105,8 @@ object Updates {
             Language.EN -> Triple("App updates", "New DNBA version: ${r.versionName}", "Tap to update")
         }
         val nm = context.getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(NotificationChannel(CHANNEL, channel, NotificationManager.IMPORTANCE_DEFAULT))
+        nm.deleteNotificationChannel("updates") // 2.4 and older: lower importance, replaced
+        nm.createNotificationChannel(NotificationChannel(CHANNEL, channel, NotificationManager.IMPORTANCE_HIGH))
         val tap = PendingIntent.getActivity(context, 0, openAppIntent(context), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val notes = r.notesFor(language).joinToString("\n") { "• $it" }
         val n = NotificationCompat.Builder(context, CHANNEL)
@@ -108,6 +116,7 @@ object Updates {
             .setContentText(tapText)
             .setStyle(NotificationCompat.BigTextStyle().bigText("$tapText\n$notes"))
             .setContentIntent(tap)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, n)
@@ -128,6 +137,7 @@ object Updates {
 class UpdateWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
     override suspend fun doWork(): Result {
         Updates.check(applicationContext)
+        runCatching { Reminders.catchUp(applicationContext) }
         return Result.success()
     }
 }

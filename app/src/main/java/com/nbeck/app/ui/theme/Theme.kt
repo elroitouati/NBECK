@@ -58,6 +58,13 @@ data class NbColors(
     val ledDim: Color = Color(0x22FFB021),
     /** Parquet floor on the home screen (custom themes can turn it off). */
     val showParquet: Boolean = true,
+    /** Icon colors of the home-screen game cards and tiles. */
+    val iconFree: Color = Color(0xFF38BDF8),
+    val iconChain: Color = Color(0xFFA78BFA),
+    val iconHl: Color = Color(0xFF2FBF71),
+    val iconArchive: Color = Color(0xFFFFC72C),
+    val iconStats: Color = Color(0xFFFF7A1A),
+    val iconAch: Color = Color(0xFFFF7A1A),
 ) {
     fun tile(m: Mark) = when (m) { Mark.GREEN -> green; Mark.YELLOW -> yellow; Mark.GRAY -> gray }
     fun onTile(m: Mark) = when (m) { Mark.GREEN -> onGreen; Mark.YELLOW -> onYellow; Mark.GRAY -> onGray }
@@ -197,6 +204,12 @@ fun customColors(t: com.nbeck.app.data.CustomTheme): NbColors {
         led = led,
         ledDim = led.copy(alpha = 0.13f),
         showParquet = t.parquet,
+        iconFree = t.iconFree?.let(::Color) ?: Color(0xFF38BDF8),
+        iconChain = t.iconChain?.let(::Color) ?: Color(0xFFA78BFA),
+        iconHl = t.iconHl?.let(::Color) ?: Color(0xFF2FBF71),
+        iconArchive = t.iconArchive?.let(::Color) ?: Color(0xFFFFC72C),
+        iconStats = t.iconStats?.let(::Color) ?: accent,
+        iconAch = t.iconAch?.let(::Color) ?: accent,
     )
 }
 

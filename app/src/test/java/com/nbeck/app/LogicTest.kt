@@ -153,6 +153,19 @@ class EspnPositionTest {
 
 class ReminderTimesTest {
     private fun at(y: Int, m: Int, d: Int, h: Int, min: Int = 0) = java.time.LocalDateTime.of(y, m, d, h, min)
+    @Test fun dueOncePerDayAfterItsTime() {
+        val due = com.nbeck.app.data.Reminders::due
+        // Friday 2026-11-20: 12:00. Saturday 2026-11-21: 22:00. Monday 2026-11-23: 15:00.
+        assertEquals(false, due(at(2026, 11, 20, 11, 59), true, null, false))
+        assertEquals(true, due(at(2026, 11, 20, 12, 0), true, null, false))
+        assertEquals(false, due(at(2026, 11, 21, 15, 0), true, null, false))
+        assertEquals(true, due(at(2026, 11, 21, 23, 30), true, "2026-11-20", false))
+        assertEquals(true, due(at(2026, 11, 23, 16, 0), true, null, false))
+        assertEquals(false, due(at(2026, 11, 23, 16, 0), true, "2026-11-23", false)) // already sent today
+        assertEquals(false, due(at(2026, 11, 23, 16, 0), true, null, true))          // daily already played
+        assertEquals(false, due(at(2026, 11, 23, 16, 0), false, null, false))        // turned off
+    }
+
     @Test fun schedule() {
         val next = com.nbeck.app.data.Reminders::next
         // 2026-11-15 is a Sunday.

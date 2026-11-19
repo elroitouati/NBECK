@@ -1,5 +1,11 @@
 package com.nbeck.app.ui.screens
 
+import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.Link
+import androidx.compose.material.icons.rounded.SwapVert
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.BarChart
+import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -63,18 +69,6 @@ import com.nbeck.app.ui.theme.customColors
 import com.nbeck.app.ui.theme.nb
 import kotlinx.coroutines.launch
 
-/** Ready-made starting points; everything stays editable after picking one. */
-private val Presets: List<Pair<String, CustomTheme>> = listOf(
-    "Arena" to CustomTheme(),
-    "Lakers" to CustomTheme(bg = 0xFF1B1030, surface = 0xFF2A1A45, accent = 0xFFFDB927, led = 0xFFFDB927, glow = 0xFFFDB927),
-    "Celtics" to CustomTheme(bg = 0xFF0B1A12, surface = 0xFF11281C, accent = 0xFFBA9653, led = 0xFF4ADE80, glow = 0xFF007A33),
-    "Knicks" to CustomTheme(bg = 0xFF0B1426, surface = 0xFF13213D, accent = 0xFFF58426, led = 0xFFF58426, glow = 0xFF006BB6),
-    "Bulls" to CustomTheme(bg = 0xFF140B0D, surface = 0xFF24141A, accent = 0xFFCE1141, led = 0xFFFF4D4D, glow = 0xFFCE1141),
-    "Neon" to CustomTheme(bg = 0xFF0A0A14, surface = 0xFF15152A, accent = 0xFFE879F9, led = 0xFF38BDF8, glow = 0xFF7B4DDB, border = 0xFF7B4DDB, parquet = false),
-    "Beach" to CustomTheme(bg = 0xFFFFF4E8, surface = 0xFFFFFFFF, accent = 0xFF00A6A6, led = 0xFFFFB021, glow = 0xFFFFC72C),
-    "Snow" to CustomTheme(bg = 0xFFEEF2F8, surface = 0xFFFFFFFF, accent = 0xFF1D8CF2, led = 0xFF38BDF8, parquet = false),
-)
-
 /** Which color a row edits. [auto] = it can be reset to the automatic value. */
 private class Field(val label: String, val current: (NbColors) -> Color, val explicit: Boolean, val auto: Boolean, val set: (Long?) -> CustomTheme)
 
@@ -104,11 +98,8 @@ fun ThemeEditorScreen(onDone: () -> Unit) {
                     Spacer(Modifier.height(Space.l))
                     Preview()
 
-                    Group(s.tPresets) {
-                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
-                            Presets.forEach { (name, t) -> PresetChip(name, t) { draft = t } }
-                        }
-                    }
+                    PresetRows(s.tPresetsTeams, TeamPresets) { draft = it }
+                    PresetRows(s.tPresets, IdeaPresets) { draft = it }
                     Group(s.tGroupAtmosphere) {
                         ColorRow(Field(s.tBackground, { it.bg }, true, false) { d.copy(bg = it!!) }) { editing = it }
                         ColorRow(Field(s.tGlow, { it.spotlight.copy(alpha = 1f) }, d.glow != null, true) { d.copy(glow = it) }) { editing = it }
@@ -135,6 +126,14 @@ fun ThemeEditorScreen(onDone: () -> Unit) {
                         ColorRow(Field(s.tGreen, { it.green }, d.green != null, true) { d.copy(green = it) }) { editing = it }
                         ColorRow(Field(s.tYellow, { it.yellow }, d.yellow != null, true) { d.copy(yellow = it) }) { editing = it }
                         ColorRow(Field(s.tGray, { it.gray }, d.gray != null, true) { d.copy(gray = it) }) { editing = it }
+                    }
+                    Group(s.tGroupIcons) {
+                        ColorRow(Field(s.free, { it.iconFree }, d.iconFree != null, true) { d.copy(iconFree = it) }) { editing = it }
+                        ColorRow(Field(s.chain, { it.iconChain }, d.iconChain != null, true) { d.copy(iconChain = it) }) { editing = it }
+                        ColorRow(Field(s.hl, { it.iconHl }, d.iconHl != null, true) { d.copy(iconHl = it) }) { editing = it }
+                        ColorRow(Field(s.archive, { it.iconArchive }, d.iconArchive != null, true) { d.copy(iconArchive = it) }) { editing = it }
+                        ColorRow(Field(s.stats, { it.iconStats }, d.iconStats != null, true) { d.copy(iconStats = it) }) { editing = it }
+                        ColorRow(Field(s.achievements, { it.iconAch }, d.iconAch != null, true) { d.copy(iconAch = it) }) { editing = it }
                     }
                     Spacer(Modifier.height(Space.l))
                     NbButton(s.tReset, Modifier.fillMaxWidth(), kind = ButtonKind.GHOST) { draft = CustomTheme() }
@@ -193,6 +192,37 @@ private fun Preview() {
         }
         Spacer(Modifier.height(Space.m))
         NbButton(s.daily, Modifier.fillMaxWidth()) {}
+        Spacer(Modifier.height(Space.m))
+        Row(horizontalArrangement = Arrangement.spacedBy(Space.s)) {
+            listOf(
+                androidx.compose.material.icons.Icons.Rounded.Shuffle to c.iconFree,
+                androidx.compose.material.icons.Icons.Rounded.Link to c.iconChain,
+                androidx.compose.material.icons.Icons.Rounded.SwapVert to c.iconHl,
+                androidx.compose.material.icons.Icons.Rounded.History to c.iconArchive,
+                androidx.compose.material.icons.Icons.Rounded.BarChart to c.iconStats,
+                androidx.compose.material.icons.Icons.Rounded.EmojiEvents to c.iconAch,
+            ).forEach { (icon, tint) ->
+                Box(
+                    Modifier.size(40.dp).clip(CircleShape).background(tint.copy(alpha = 0.18f)).border(1.dp, tint.copy(alpha = 0.45f), CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) { androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp)) }
+            }
+        }
+    }
+}
+
+/** Presets in a sideways-scrolling grid of three rows. */
+@Composable
+private fun PresetRows(title: String, presets: List<Pair<String, CustomTheme>>, onPick: (CustomTheme) -> Unit) {
+    Spacer(Modifier.height(Space.xl))
+    Text(title, style = Type.title, color = nb.text1)
+    Spacer(Modifier.height(Space.s))
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
+        presets.chunked(3).forEach { col ->
+            Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+                col.forEach { (name, t) -> PresetChip(name, t) { onPick(t) } }
+            }
+        }
     }
 }
 
@@ -242,13 +272,13 @@ private fun PresetChip(name: String, t: CustomTheme, onClick: () -> Unit) {
     val col = customColors(t)
     val shape = RoundedCornerShape(Space.rControl)
     Column(
-        Modifier.clip(shape).background(col.bg).border(1.dp, col.borderStrong, shape).pressable(onClick = onClick).padding(Space.s),
+        Modifier.width(104.dp).clip(shape).background(col.bg).border(1.dp, col.borderStrong, shape).pressable(onClick = onClick).padding(Space.s),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
             listOf(col.surface1, col.accent, col.led).forEach { Box(Modifier.size(16.dp).clip(CircleShape).background(it)) }
         }
         Spacer(Modifier.height(4.dp))
-        Text(name, style = Type.label, color = col.text1)
+        Text(name, style = Type.label, color = col.text1, maxLines = 1)
     }
 }

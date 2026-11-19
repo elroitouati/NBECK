@@ -20,6 +20,36 @@ data class Release(
 object Changelog {
     val releases: List<Release> = listOf(
         Release(
+            23, "2.5.0", "2026-11-19",
+            he = listOf(
+                "46 ערכות עיצוב מוכנות: כל 30 קבוצות ה-NBA ועוד 16 רעיונות (ניאון, שקיעה, אוקיינוס, מטריקס, כחול-לבן ועוד)",
+                "צבעי האייקונים של המשחקים (חופשי, שרשרת, פחות או יותר, אתגרים, סטטיסטיקות, הישגים) חלק מהעיצוב האישי",
+                "התראות אמינות: בדיקה ברקע כל רבע שעה גם כשהאפליקציה סגורה – התראה על גרסה חדשה ברגע שהיא זמינה, ותזכורת יומית שלא מתפספסת",
+                "בקשת אישור להתראות ולפעילות ברקע, ומסך מצב התראות + התראת בדיקה בהגדרות",
+                "פחות או יותר: SKIP מחליף שחקנים וקטגוריה לפני הבחירה הראשונה, ואחריה הופך ל-QUIT",
+                "מחיקת המידע מסבירה בדיוק מה נמחק ושואלת אם אתה בטוח",
+                "תיקון: כפתורי ההגדרות וההדרכה כבר לא עולים על הלוגו; בהדרכה – דני אבדיה",
+            ),
+            en = listOf(
+                "46 ready-made themes: all 30 NBA teams plus 16 more ideas (Neon, Sunset, Ocean, Matrix, Blue & White and more)",
+                "Game icon colors (free play, chain, higher or lower, past challenges, stats, achievements) are part of the custom theme",
+                "Reliable notifications: a background check every 15 minutes even with the app closed – new-version alerts as soon as it's out, and a daily reminder that doesn't get lost",
+                "Asks to allow notifications and background activity; notification status and a test notification in Settings",
+                "Higher or Lower: SKIP swaps the players and category before your first pick, then turns into QUIT",
+                "Deleting your data explains exactly what's erased and asks if you're sure",
+                "Fix: the settings and help buttons no longer overlap the logo; the how-to now shows Deni Avdija",
+            ),
+            fr = listOf(
+                "46 thèmes prêts : les 30 équipes NBA et 16 autres idées (Neon, Sunset, Ocean, Matrix, Blue & White…)",
+                "Les couleurs des icônes des jeux font partie du thème personnalisé",
+                "Notifications fiables : vérification toutes les 15 minutes même appli fermée – alerte dès qu'une version sort, et rappel quotidien qui ne se perd pas",
+                "Demande l'autorisation des notifications et de l'activité en arrière-plan ; état des notifications et notification test dans les Réglages",
+                "Plus ou moins : PASSER change les joueurs et la catégorie avant le premier choix, puis devient QUITTER",
+                "La suppression des données explique ce qui est effacé et demande confirmation",
+                "Correctif : les boutons réglages et aide ne recouvrent plus le logo ; le tutoriel montre Deni Avdija",
+            ),
+        ),
+        Release(
             22, "2.4.0", "2026-11-19",
             he = listOf(
                 "מסך הבית חי יותר: כרטיסים שנכנסים באנימציה, לוגו שזז, אייקונים צבעוניים ושורת רצף/ניצחונות/הישגים",

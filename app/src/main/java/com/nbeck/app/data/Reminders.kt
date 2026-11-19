@@ -66,20 +66,47 @@ object Reminders {
 
     /** Alarm went off: remind if today's daily is still open, then arm the next one. */
     suspend fun fire(context: Context) {
-        val app = context.applicationContext as NbeckApp
-        val settings = app.prefs.settings.first()
-        val today = LocalDate.now()
-        val played = app.prefs.game(Mode.DAILY, today).first()?.finished == true
-        if (settings.dailyReminder && !played) {
-            notify(context, settings.language, app.prefs.stats.first().daily.liveStreak(Mode.DAILY, today))
-        }
+        remindIfDue(context, LocalDateTime.now().plusMinutes(1))
         schedule(context, after = LocalDateTime.now().plusMinutes(1))
     }
 
-    private fun notify(context: Context, language: Language, streak: Int) {
+    /**
+     * Safety net, run by the 15-minute background check: if today's reminder time has passed and
+     * no reminder went out today (the alarm was delayed or killed), send it now.
+     */
+    suspend fun catchUp(context: Context) = remindIfDue(context, LocalDateTime.now())
+
+    /** Sends today's reminder once, if its time ([now]) has come and today's daily isn't finished. */
+    private suspend fun remindIfDue(context: Context, now: LocalDateTime) {
+        val app = context.applicationContext as NbeckApp
+        val settings = app.prefs.settings.first()
+        val today = LocalDate.now()
+        if (!due(now, settings.dailyReminder, settings.remindedOn, played = false)) return
+        val played = app.prefs.game(Mode.DAILY, today).first()?.finished == true
+        if (played) return
+        if (notify(context, settings.language, app.prefs.stats.first().daily.liveStreak(Mode.DAILY, today))) {
+            app.prefs.updateSettings { it.copy(remindedOn = today.toString()) }
+        }
+    }
+
+    /** Today's reminder should go out at [now]: enabled, its time has come, not sent yet, daily not played. */
+    fun due(now: LocalDateTime, enabled: Boolean, remindedOn: String?, played: Boolean): Boolean =
+        enabled && !played && remindedOn != now.toLocalDate().toString() && now.toLocalTime() >= timeFor(now.toLocalDate().dayOfWeek)
+
+    /** Settings → "send a test notification". */
+    fun test(context: Context, language: Language) = notify(context, language, 0)
+
+    /** Notifications allowed for the app (permission on Android 13+, and not switched off). */
+    fun notificationsAllowed(context: Context) = NotificationManagerCompat.from(context).areNotificationsEnabled()
+
+    /** The app may run its background checks without battery restrictions. */
+    fun unrestricted(context: Context) =
+        context.getSystemService(android.os.PowerManager::class.java).isIgnoringBatteryOptimizations(context.packageName)
+
+    private fun notify(context: Context, language: Language, streak: Int): Boolean {
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-        ) return
+        ) return false
         val t = notificationText(language, streak)
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(
             NotificationChannel(CHANNEL, t.channel, NotificationManager.IMPORTANCE_HIGH)
@@ -99,6 +126,7 @@ object Reminders {
             .setAutoCancel(true)
             .build()
         NotificationManagerCompat.from(context).notify(2001, n)
+        return true
     }
 
     private class Text(val channel: String, val title: String, val text: String)
@@ -119,7 +147,32 @@ object Reminders {
     }
 }
 
-/** Receives the reminder alarm, and re-arms it after a reboot or an app update. */
+/**
+ * Background check every ~15 minutes, whether or not the app is open: looks for a new version (and
+ * notifies right away) and sends a missed daily reminder. An alarm chain, alongside the WorkManager
+ * job, because some phones hold WorkManager back for hours.
+ */
+object Heartbeat {
+    const val ACTION = "com.nbeck.app.HEARTBEAT"
+    private const val EVERY_MS = 15 * 60 * 1000L
+
+    fun schedule(context: Context) {
+        val pi = PendingIntent.getBroadcast(
+            context, 4, Intent(context, ReminderReceiver::class.java).setAction(ACTION),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        val am = context.getSystemService(android.app.AlarmManager::class.java)
+        am.setAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + EVERY_MS, pi)
+    }
+
+    suspend fun run(context: Context) {
+        schedule(context)
+        runCatching { kotlinx.coroutines.withTimeout(25_000) { Updates.check(context) } }
+        runCatching { Reminders.catchUp(context) }
+    }
+}
+
+/** Receives the reminder and heartbeat alarms, and re-arms them after a reboot or an app update. */
 class ReminderReceiver : android.content.BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
@@ -129,8 +182,17 @@ class ReminderReceiver : android.content.BroadcastReceiver() {
                     try { Reminders.fire(context) } finally { done.finish() }
                 }
             }
+            Heartbeat.ACTION -> {
+                val done = goAsync()
+                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default).launch {
+                    try { Heartbeat.run(context) } finally { done.finish() }
+                }
+            }
             Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED,
-            android.app.AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> Reminders.schedule(context)
+            android.app.AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> {
+                Reminders.schedule(context)
+                Heartbeat.schedule(context)
+            }
         }
     }
 }

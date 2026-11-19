@@ -58,6 +58,7 @@ import com.nbeck.app.ui.theme.Space
 import com.nbeck.app.ui.theme.Type
 import com.nbeck.app.ui.theme.nb
 import java.time.LocalDate
+import androidx.compose.ui.zIndex
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -99,16 +100,19 @@ fun HomeScreen(
     val lift by bob.animateFloat(0f, 1f, infiniteRepeatable(tween(2600, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "lift")
 
     ArenaBackground {
-        androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+        Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
+        // Fixed top bar: drawn above the scrolling content so the logo's glow never covers it.
+        Row(Modifier.fillMaxWidth().zIndex(1f).padding(horizontal = Space.gutter).padding(top = Space.s), horizontalArrangement = Arrangement.End) {
+            RoundIcon(Icons.AutoMirrored.Rounded.HelpOutline, s.howTo, onHowTo)
+            Spacer(Modifier.width(Space.s))
+            RoundIcon(Icons.Rounded.Settings, s.settings, onSettings)
+        }
+        androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).heightIn(min = maxHeight).padding(horizontal = Space.gutter),
         ) {
-            Row(Modifier.fillMaxWidth().padding(top = Space.s), horizontalArrangement = Arrangement.End) {
-                RoundIcon(Icons.AutoMirrored.Rounded.HelpOutline, s.howTo, onHowTo)
-                Spacer(Modifier.width(Space.s))
-                RoundIcon(Icons.Rounded.Settings, s.settings, onSettings)
-            }
-            Spacer(Modifier.weight(0.55f))
+            Spacer(Modifier.height(Space.xl))
+            Spacer(Modifier.weight(0.4f))
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(Modifier.graphicsLayer {
                     translationY = -6.dp.toPx() * lift
@@ -148,30 +152,31 @@ fun HomeScreen(
             }
             Spacer(Modifier.height(Space.m))
             ModeCard(
-                title = s.free, subtitle = s.freeSub, tint = Color(0xFF38BDF8), index = 2, icon = Icons.Rounded.Shuffle, primary = false, badge = null,
+                title = s.free, subtitle = s.freeSub, tint = c.iconFree, index = 2, icon = Icons.Rounded.Shuffle, primary = false, badge = null,
                 onClick = { onPlay(Mode.FREE) },
             )
             Spacer(Modifier.height(Space.m))
             ModeCard(
-                title = s.chain, subtitle = s.chainSub, tint = Color(0xFFA78BFA), index = 3, icon = Icons.Rounded.Link, primary = false, badge = null,
+                title = s.chain, subtitle = s.chainSub, tint = c.iconChain, index = 3, icon = Icons.Rounded.Link, primary = false, badge = null,
                 onClick = onChain,
             )
             Spacer(Modifier.height(Space.m))
             ModeCard(
-                title = s.hl, subtitle = s.hlSub, tint = Color(0xFF2FBF71), index = 4, icon = Icons.Rounded.SwapVert, primary = false, badge = null,
+                title = s.hl, subtitle = s.hlSub, tint = c.iconHl, index = 4, icon = Icons.Rounded.SwapVert, primary = false, badge = null,
                 onClick = onHigherLower,
             )
             Spacer(Modifier.height(Space.m))
             ModeCard(
-                title = s.archive, subtitle = s.archiveSub, tint = Color(0xFFFFC72C), index = 5, icon = Icons.Rounded.History, primary = false, badge = null,
+                title = s.archive, subtitle = s.archiveSub, tint = c.iconArchive, index = 5, icon = Icons.Rounded.History, primary = false, badge = null,
                 onClick = onArchive,
             )
             Spacer(Modifier.height(Space.xl))
             Row(Modifier.fillMaxWidth().entrance(6), horizontalArrangement = Arrangement.spacedBy(Space.m)) {
-                SmallTile(Icons.Rounded.BarChart, s.stats, Modifier.weight(1f), onStats)
-                SmallTile(Icons.Rounded.EmojiEvents, s.achievements, Modifier.weight(1f), onAchievements)
+                SmallTile(Icons.Rounded.BarChart, s.stats, c.iconStats, Modifier.weight(1f), onStats)
+                SmallTile(Icons.Rounded.EmojiEvents, s.achievements, c.iconAch, Modifier.weight(1f), onAchievements)
             }
             Spacer(Modifier.weight(1.4f))
+        }
         }
         }
     }
@@ -219,7 +224,7 @@ private fun ModeCard(title: String, subtitle: String, icon: ImageVector, primary
 }
 
 @Composable
-private fun SmallTile(icon: ImageVector, label: String, modifier: Modifier, onClick: () -> Unit) {
+private fun SmallTile(icon: ImageVector, label: String, tint: Color, modifier: Modifier, onClick: () -> Unit) {
     val c = nb
     val shape = RoundedCornerShape(Space.rCard)
     Row(
@@ -227,7 +232,7 @@ private fun SmallTile(icon: ImageVector, label: String, modifier: Modifier, onCl
             .pressable(onClick = onClick).padding(horizontal = Space.l),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, null, tint = c.accent)
+        Icon(icon, null, tint = tint)
         Spacer(Modifier.width(Space.m))
         Text(label, style = Type.bodyStrong, color = c.text1)
     }

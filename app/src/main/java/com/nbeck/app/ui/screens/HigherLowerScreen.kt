@@ -164,7 +164,9 @@ fun HigherLowerScreen(onQuit: () -> Unit) {
 
     ArenaBackground(parquet = false) {
         Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
-            Header(score = ui.game?.score ?: 0, showScore = ui.phase != HlPhase.SUMMARY, onQuit = onQuit)
+            // Before the first pick the corner button is SKIP (new players and category); after it, QUIT.
+            val canSkip = ui.phase == HlPhase.PLAYING && ui.game?.rounds?.isEmpty() == true
+            Header(score = ui.game?.score ?: 0, showScore = ui.phase != HlPhase.SUMMARY, skip = canSkip, onQuit = { if (canSkip) vm.newGame() else onQuit() })
             val game = ui.game
             when {
                 game == null || ui.phase == HlPhase.LOADING ->
@@ -178,7 +180,7 @@ fun HigherLowerScreen(onQuit: () -> Unit) {
 
 /** Score at the left, title, QUIT in the top-right corner — fixed positions in both languages. */
 @Composable
-private fun Header(score: Int, showScore: Boolean, onQuit: () -> Unit) {
+private fun Header(score: Int, showScore: Boolean, skip: Boolean, onQuit: () -> Unit) {
     val c = nb
     val s = LocalStrings.current
     Box(Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = Space.m)) {
@@ -194,7 +196,7 @@ private fun Header(score: Int, showScore: Boolean, onQuit: () -> Unit) {
                 .border(1.dp, c.borderStrong, RoundedCornerShape(Space.rControl)).pressable(onClick = onQuit).padding(horizontal = Space.m),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(s.quit, style = Type.label.copy(fontSize = 14.sp, fontFamily = Bebas, letterSpacing = 1.sp), color = c.text1)
+            Text(if (skip) s.skipCaps else s.quit, style = Type.label.copy(fontSize = 14.sp, fontFamily = Bebas, letterSpacing = 1.sp), color = c.text1)
         }
     }
 }

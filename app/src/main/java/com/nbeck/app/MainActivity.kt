@@ -76,8 +76,44 @@ class MainActivity : ComponentActivity() {
     /** Android 13+: notifications need runtime permission; asked once, after the first intro. */
     private val notificationPermission =
         registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) (application as NbeckApp).appScope.launch { com.nbeck.app.data.Updates.check(this@MainActivity) }
+            if (!granted && android.os.Build.VERSION.SDK_INT >= 33 &&
+                !shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS)
+            ) {
+                // Denied for good earlier: the system won't ask again, so open the app's notification settings.
+                openNotificationSettings()
+            } else {
+                askUnrestricted()
+            }
         }
+
+    /** The full "allow notifications" flow: permission (or settings), then background activity. */
+    fun allowNotifications() {
+        val app = application as NbeckApp
+        app.appScope.launch { app.prefs.updateSettings { it.copy(askedNotifications = true) } }
+        when {
+            !com.nbeck.app.data.Reminders.notificationsAllowed(this) && android.os.Build.VERSION.SDK_INT >= 33 ->
+                notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            !com.nbeck.app.data.Reminders.notificationsAllowed(this) -> openNotificationSettings()
+            else -> askUnrestricted()
+        }
+    }
+
+    private fun openNotificationSettings() {
+        runCatching {
+            startActivity(android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName))
+        }
+    }
+
+    /** Lets the alarms and background checks run on time even when the app is closed. */
+    @android.annotation.SuppressLint("BatteryLife")
+    private fun askUnrestricted() {
+        if (com.nbeck.app.data.Reminders.unrestricted(this)) return
+        runCatching {
+            startActivity(android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                .setData(android.net.Uri.parse("package:$packageName")))
+        }
+    }
 
     private fun animationsEnabled() =
         android.provider.Settings.Global.getFloat(contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f
@@ -98,7 +134,8 @@ class MainActivity : ComponentActivity() {
         super.onStart()
         val app = application as NbeckApp
         app.appScope.launch { app.players.refreshOnOpen() }
-        app.appScope.launch { com.nbeck.app.data.Updates.check(app) }
+        // The popup shows a new version while the app is open; notifications come from the background check.
+        app.appScope.launch { com.nbeck.app.data.Updates.check(app, notify = false) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -129,12 +166,6 @@ class MainActivity : ComponentActivity() {
                     app.prefs.updateSettings { it.copy(lastSeenVersion = current) }
                 }
             }
-            LaunchedEffect(showIntro) {
-                if (!showIntro && android.os.Build.VERSION.SDK_INT >= 33 && !st.askedNotifications) {
-                    app.prefs.updateSettings { it.copy(askedNotifications = true) }
-                    notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                }
-            }
             CompositionLocalProvider(LocalStrings provides stringsFor(st.language), LocalLayoutDirection provides dir) {
                 NbeckTheme(st.effectiveTheme, st.custom) {
                     AppNav(showHowToFirst = !st.seenHowTo)
@@ -158,6 +189,24 @@ class MainActivity : ComponentActivity() {
                         LaunchedEffect(requested) {
                             if (requested) com.nbeck.app.data.Installer.downloadAndInstall(applicationContext, update)
                         }
+                    }
+                    // Notifications or background activity not allowed: explain and ask (at most once a day).
+                    val today = java.time.LocalDate.now().toString()
+                    var notifPrompt by rememberSaveable { mutableStateOf(false) }
+                    LaunchedEffect(showIntro, whatsNew.isEmpty(), update == null || updateDismissed) {
+                        if (!showIntro && whatsNew.isEmpty() && (update == null || updateDismissed) && st.seenHowTo &&
+                            st.notifPromptOn != today &&
+                            (!com.nbeck.app.data.Reminders.notificationsAllowed(this@MainActivity) || !com.nbeck.app.data.Reminders.unrestricted(this@MainActivity))
+                        ) {
+                            notifPrompt = true
+                            app.prefs.updateSettings { it.copy(notifPromptOn = today) }
+                        }
+                    }
+                    if (notifPrompt) {
+                        com.nbeck.app.ui.screens.NotificationPrompt(
+                            onAllow = { notifPrompt = false; allowNotifications() },
+                            onLater = { notifPrompt = false },
+                        )
                     }
                     if (showIntro) {
                         com.nbeck.app.ui.components.IntroOverlay(onLand = { app.feedback.tick() }, onDone = { showIntro = false })

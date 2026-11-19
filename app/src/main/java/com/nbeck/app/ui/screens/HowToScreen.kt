@@ -58,9 +58,9 @@ private val demoCells = listOf(
 )
 
 private val demoPlayer = Player(
-    id = "demo", name = "Jayson Tatum", firstName = "Jayson", lastName = "Tatum", teamId = 2, position = "F",
-    birthDate = "1998-03-03", jersey = "0", country = "USA", headshot = "https://a.espncdn.com/i/headshots/nba/players/full/4065648.png",
-    draftYear = 2017, ring = true,
+    id = "demo", name = "Deni Avdija", firstName = "Deni", lastName = "Avdija", teamId = 22, position = "F",
+    birthDate = "2001-01-03", jersey = "8", country = "Israel", headshot = "https://a.espncdn.com/i/headshots/nba/players/full/4683021.png",
+    draftYear = 2020, ring = false,
 )
 
 @Composable

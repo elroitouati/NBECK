@@ -205,6 +205,12 @@ class ScreenshotTest {
         seedDaily(listOf("LeBron James", "Nikola Jokic"), finished = true, won = true)
         shot("11_archive_he") { com.nbeck.app.ui.screens.ArchiveScreen({}, {}) }
     }
+    @Test @Config(qualifiers = "w360dp-h700dp-xhdpi") fun home_he_small() = shot("28_home_he_small", realWaitMs = 1200) { HomeScreen({}, {}, {}, {}, {}, {}) }
+    @Test fun howto_avdija() = shot("29_howto_he", realWaitMs = 600) { HowToScreen({}, {}) }
+    @Test @Config(qualifiers = "w393dp-h3000dp-mdpi") fun theme_editor_full() {
+        runBlocking { app.prefs.updateSettings { it.copy(custom = com.nbeck.app.ui.screens.TeamPresets.first { it.first == "Lakers" }.second) } }
+        shot("30_theme_editor_full", realWaitMs = 800) { com.nbeck.app.ui.screens.ThemeEditorScreen({}) }
+    }
     @Test fun home_fr() = shot("23_home_fr", Language.FR, realWaitMs = 1200) { HomeScreen({}, {}, {}, {}, {}, {}) }
     @Test fun settings_fr() = shot("24_settings_fr", Language.FR) { SettingsScreen({}) }
     @Test fun game_progress_fr() { seedDaily(someGuesses); shot("25_game_progress_fr", Language.FR) { GameScreen(Mode.DAILY, {}, {}) } }

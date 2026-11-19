@@ -136,6 +136,20 @@ interface Strings {
     val installFailed: String
     val retry: String
     val skip: String
+    val tPresetsTeams: String
+    val tGroupIcons: String
+    val skipCaps: String
+    val deleteWhat: String
+    val deleteList: String
+    val deleteSure: String
+    val notifTitle: String
+    val notifBody: String
+    val notifAllow: String
+    val notifSection: String
+    val notifOk: String
+    val notifMissing: String
+    val notifTest: String
+    val updateNotif: String
     val homeStreak: String
     val homeWins: String
     val homeBadges: String
@@ -368,7 +382,7 @@ object He : Strings {
     override val deleteData = "מחק את הנתונים שלי"
     override val resetSection = "איפוס"
     override val deleteTitle = "למחוק את כל הנתונים?"
-    override val deleteBody = "כל הסטטיסטיקות, ההישגים והמשחקים יימחקו ויתאפסו. אי אפשר לשחזר אותם."
+    override val deleteBody = "אי אפשר לבטל את הפעולה ולשחזר את הנתונים."
     override val delete = "מחק הכול"
     override val cancel = "ביטול"
     override val deleted = "הנתונים נמחקו"
@@ -402,6 +416,20 @@ object He : Strings {
     override val installFailed = "ההורדה נכשלה. בדוק את החיבור ונסה שוב"
     override val retry = "נסה שוב"
     override val skip = "דלג"
+    override val tPresetsTeams = "קבוצות NBA"
+    override val tGroupIcons = "אייקוני המשחקים"
+    override val skipCaps = "SKIP"
+    override val deleteWhat = "זה ימחק לצמיתות:"
+    override val deleteList = "• כל הסטטיסטיקות והרצפים\n• כל ההישגים שפתחת\n• המשחקים השמורים והאתגרים הקודמים ששיחקת\n\nההגדרות, השפה והעיצוב שלך נשארים."
+    override val deleteSure = "האם אתה בטוח?"
+    override val notifTitle = "לאפשר התראות?"
+    override val notifBody = "כדי לקבל תזכורת לאתגר היומי ועדכון ברגע שיוצאת גרסה חדשה – גם כשהאפליקציה סגורה – צריך לאשר התראות ופעילות ברקע."
+    override val notifAllow = "אשר"
+    override val notifSection = "התראות"
+    override val notifOk = "התראות פעילות גם כשהאפליקציה סגורה"
+    override val notifMissing = "ההתראות לא מאושרות במלואן – לחץ כדי לאשר"
+    override val notifTest = "שלח התראת בדיקה"
+    override val updateNotif = "עדכון גרסה"
     override val homeStreak = "רצף"
     override val homeWins = "ניצחונות"
     override val homeBadges = "הישגים"
@@ -644,7 +672,7 @@ object En : Strings {
     override val deleteData = "Delete my data"
     override val resetSection = "Reset"
     override val deleteTitle = "Delete all your data?"
-    override val deleteBody = "All statistics, achievements and games will be erased and reset. This can't be undone."
+    override val deleteBody = "This can't be undone."
     override val delete = "Delete everything"
     override val cancel = "Cancel"
     override val deleted = "Your data was deleted"
@@ -678,6 +706,20 @@ object En : Strings {
     override val installFailed = "Download failed. Check your connection and try again"
     override val retry = "Try again"
     override val skip = "Skip"
+    override val tPresetsTeams = "NBA teams"
+    override val tGroupIcons = "Game icons"
+    override val skipCaps = "SKIP"
+    override val deleteWhat = "This permanently deletes:"
+    override val deleteList = "• All statistics and streaks\n• Every achievement you unlocked\n• Saved games and the past challenges you played\n\nYour settings, language and theme stay."
+    override val deleteSure = "Are you sure?"
+    override val notifTitle = "Allow notifications?"
+    override val notifBody = "To get the daily challenge reminder and an alert the moment a new version is out – even when the app is closed – allow notifications and background activity."
+    override val notifAllow = "Allow"
+    override val notifSection = "Notifications"
+    override val notifOk = "Notifications work even when the app is closed"
+    override val notifMissing = "Notifications aren't fully allowed – tap to allow"
+    override val notifTest = "Send a test notification"
+    override val updateNotif = "Version updates"
     override val homeStreak = "streak"
     override val homeWins = "wins"
     override val homeBadges = "badges"

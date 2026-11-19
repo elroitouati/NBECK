@@ -1,5 +1,9 @@
 package com.nbeck.app.ui.screens
 
+import androidx.compose.runtime.remember
+import com.nbeck.app.ui.components.pressable
+import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -205,5 +209,68 @@ fun UpdateAction(release: com.nbeck.app.data.LatestRelease, autoStart: Boolean =
             NbButton(s.retry, Modifier.fillMaxWidth(), onClick = start)
         }
         com.nbeck.app.data.InstallState.Idle -> NbButton(s.updateNow, Modifier.fillMaxWidth(), onClick = start)
+    }
+}
+
+/** Explains why notifications and background activity are needed, then asks for them. */
+@Composable
+fun NotificationPrompt(onAllow: () -> Unit, onLater: () -> Unit) {
+    val c = nb
+    val s = LocalStrings.current
+    val shape = RoundedCornerShape(Space.rPanel)
+    Dialog(onDismissRequest = onLater) {
+        Column(
+            Modifier.fillMaxWidth().clip(shape).background(c.surface1).border(1.dp, c.accent.copy(alpha = 0.6f), shape).padding(Space.xl),
+        ) {
+            Box(Modifier.size(52.dp).clip(androidx.compose.foundation.shape.CircleShape).background(c.accent.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
+                androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.NotificationsActive, null, tint = c.accent)
+            }
+            Spacer(Modifier.height(Space.m))
+            Text(s.notifTitle, style = Type.h2, color = c.text1)
+            Spacer(Modifier.height(Space.s))
+            Text(s.notifBody, style = Type.body, color = c.text2)
+            Spacer(Modifier.height(Space.xl))
+            NbButton(s.notifAllow, Modifier.fillMaxWidth(), onClick = onAllow)
+            Spacer(Modifier.height(Space.s))
+            NbButton(s.later, Modifier.fillMaxWidth(), kind = com.nbeck.app.ui.components.ButtonKind.GHOST, onClick = onLater)
+        }
+    }
+}
+
+/** Settings row: whether notifications fully work, a button to fix it, and a test notification. */
+@Composable
+fun NotificationSettings() {
+    val c = nb
+    val s = LocalStrings.current
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    val state by lifecycle.currentStateFlow.collectAsState()
+    // Re-read on every resume (back from the system settings).
+    val ok = remember(state) {
+        com.nbeck.app.data.Reminders.notificationsAllowed(ctx) && com.nbeck.app.data.Reminders.unrestricted(ctx)
+    }
+    val activity = remember(ctx) {
+        var x: android.content.Context? = ctx
+        while (x is android.content.ContextWrapper && x !is com.nbeck.app.MainActivity) x = x.baseContext
+        x as? com.nbeck.app.MainActivity
+    }
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(Space.rCard)).background(c.surface1)
+            .border(1.dp, if (ok) c.border else c.accent.copy(alpha = 0.7f), RoundedCornerShape(Space.rCard))
+            .then(if (!ok) Modifier.pressable { activity?.allowNotifications() } else Modifier)
+            .padding(Space.l),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        androidx.compose.material3.Icon(
+            if (ok) androidx.compose.material.icons.Icons.Rounded.NotificationsActive else androidx.compose.material.icons.Icons.Rounded.NotificationsOff,
+            null, tint = if (ok) c.green else c.accent,
+        )
+        Spacer(Modifier.width(Space.m))
+        Text(if (ok) s.notifOk else s.notifMissing, style = Type.bodyStrong, color = c.text1, modifier = Modifier.weight(1f))
+    }
+    Spacer(Modifier.height(Space.s))
+    val lang = s.lang
+    NbButton(s.notifTest, Modifier.fillMaxWidth(), kind = com.nbeck.app.ui.components.ButtonKind.GHOST) {
+        if (!com.nbeck.app.data.Reminders.test(ctx, lang)) activity?.allowNotifications()
     }
 }
