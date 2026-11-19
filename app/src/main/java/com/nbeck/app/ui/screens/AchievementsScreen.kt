@@ -24,7 +24,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.rounded.AllInclusive
 import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.AutoStories
 import androidx.compose.material.icons.rounded.Bedtime
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.Groups
+import androidx.compose.material.icons.rounded.Hub
+import androidx.compose.material.icons.rounded.MilitaryTech
+import androidx.compose.material.icons.rounded.WbSunny
 import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Diamond
@@ -98,6 +104,13 @@ fun Achievement.icon(): ImageVector = when (this) {
     Achievement.CHAIN_FIRST -> Icons.Rounded.Link
     Achievement.CHAIN_PERFECT -> Icons.Rounded.AutoAwesome
     Achievement.CHAIN_STREAK_5 -> Icons.Rounded.AllInclusive
+    Achievement.STREAK_14 -> Icons.Rounded.LocalFireDepartment
+    Achievement.DAILY_WINS_10, Achievement.DAILY_WINS_50 -> Icons.Rounded.CalendarMonth
+    Achievement.FREE_WINS_100 -> Icons.Rounded.MilitaryTech
+    Achievement.HISTORIAN_30 -> Icons.Rounded.AutoStories
+    Achievement.CHAIN_WINS_10 -> Icons.Rounded.Hub
+    Achievement.EARLY_BIRD -> Icons.Rounded.WbSunny
+    Achievement.ALL_POSITIONS -> Icons.Rounded.Groups
 }
 
 @Composable

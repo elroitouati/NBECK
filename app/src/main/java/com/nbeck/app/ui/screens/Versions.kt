@@ -48,7 +48,7 @@ import com.nbeck.app.ui.theme.Space
 import com.nbeck.app.ui.theme.Type
 import com.nbeck.app.ui.theme.nb
 
-private fun Release.notes(s: Strings) = if (s === He) he else en
+private fun Release.notes(s: Strings) = notesFor(s.lang)
 private fun Release.prettyDate() = date.split("-").let { (y, m, d) -> "$d.$m.$y" }
 
 /** Shown once after an update: the notes of every version the player hasn't seen. */
@@ -156,7 +156,7 @@ fun UpdateAvailableDialog(release: com.nbeck.app.data.LatestRelease, onLater: ()
                 Spacer(Modifier.width(Space.s))
                 Text("${s.currentVersion}: ${BuildConfig.VERSION_NAME}", style = Type.label.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Normal), color = c.text2)
             }
-            val notes = if (s === He) release.notesHe else release.notesEn
+            val notes = release.notesFor(s.lang)
             if (notes.isNotEmpty()) {
                 Spacer(Modifier.height(Space.l))
                 Column(Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(Space.s)) {

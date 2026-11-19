@@ -58,6 +58,21 @@ import com.nbeck.app.ui.theme.Space
 import com.nbeck.app.ui.theme.Type
 import com.nbeck.app.ui.theme.nb
 import java.time.LocalDate
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.tween
+import androidx.compose.material.icons.rounded.LocalFireDepartment
+import androidx.compose.material.icons.rounded.MilitaryTech
+import androidx.compose.material.icons.rounded.SportsBasketball
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.graphicsLayer
+import com.nbeck.app.game.Achievement
+import com.nbeck.app.game.AchievementState
+import com.nbeck.app.game.Stats
 
 @Composable
 fun HomeScreen(
@@ -78,6 +93,10 @@ fun HomeScreen(
     val today = LocalDate.now().toString()
     val playedToday = daily?.let { it.date == today && it.finished } == true
     val inProgress = daily?.let { it.date == today && !it.finished && it.guessIds.isNotEmpty() } == true
+    val stats by remember { app.prefs.stats }.collectAsState(initial = Stats())
+    val ach by remember { app.prefs.achievements }.collectAsState(initial = AchievementState())
+    val bob = rememberInfiniteTransition(label = "logo")
+    val lift by bob.animateFloat(0f, 1f, infiniteRepeatable(tween(2600, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "lift")
 
     ArenaBackground {
         androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
@@ -91,11 +110,21 @@ fun HomeScreen(
             }
             Spacer(Modifier.weight(0.55f))
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Wordmark(height = 104.dp)
+                Box(Modifier.graphicsLayer {
+                    translationY = -6.dp.toPx() * lift
+                    val k = 1f + 0.02f * lift
+                    scaleX = k; scaleY = k
+                }) { Wordmark(height = 104.dp) }
                 Spacer(Modifier.height(Space.m))
                 Text(s.tagline, style = Type.title, color = c.text2)
+                Spacer(Modifier.height(Space.l))
+                Row(Modifier.entrance(0), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
+                    StatChip(Icons.Rounded.LocalFireDepartment, Color(0xFFFF6B3D), stats.daily.liveStreak(Mode.DAILY, LocalDate.now()).toString(), s.homeStreak)
+                    StatChip(Icons.Rounded.SportsBasketball, Color(0xFF2FBF71), (stats.daily.wins + stats.free.wins).toString(), s.homeWins)
+                    StatChip(Icons.Rounded.MilitaryTech, Color(0xFFFFC72C), "${ach.unlocked.size}/${Achievement.entries.size}", s.homeBadges)
+                }
             }
-            Spacer(Modifier.height(Space.xxxl))
+            Spacer(Modifier.height(Space.xxl))
 
             // Primary action: the daily. Biggest, warmest thing on the screen.
             ModeCard(
@@ -105,7 +134,7 @@ fun HomeScreen(
                     else -> s.dailySub
                 },
                 icon = if (playedToday) Icons.Rounded.Check else Icons.Rounded.CalendarToday,
-                primary = true,
+                primary = true, tint = Color.Unspecified, index = 1,
                 badge = when {
                     playedToday -> if (daily?.won == true) "${daily?.guessIds?.size}/$MAX_GUESSES" else "X/$MAX_GUESSES"
                     inProgress -> "${daily?.guessIds?.size}/$MAX_GUESSES"
@@ -119,26 +148,26 @@ fun HomeScreen(
             }
             Spacer(Modifier.height(Space.m))
             ModeCard(
-                title = s.free, subtitle = s.freeSub, icon = Icons.Rounded.Shuffle, primary = false, badge = null,
+                title = s.free, subtitle = s.freeSub, tint = Color(0xFF38BDF8), index = 2, icon = Icons.Rounded.Shuffle, primary = false, badge = null,
                 onClick = { onPlay(Mode.FREE) },
             )
             Spacer(Modifier.height(Space.m))
             ModeCard(
-                title = s.chain, subtitle = s.chainSub, icon = Icons.Rounded.Link, primary = false, badge = null,
+                title = s.chain, subtitle = s.chainSub, tint = Color(0xFFA78BFA), index = 3, icon = Icons.Rounded.Link, primary = false, badge = null,
                 onClick = onChain,
             )
             Spacer(Modifier.height(Space.m))
             ModeCard(
-                title = s.hl, subtitle = s.hlSub, icon = Icons.Rounded.SwapVert, primary = false, badge = null,
+                title = s.hl, subtitle = s.hlSub, tint = Color(0xFF2FBF71), index = 4, icon = Icons.Rounded.SwapVert, primary = false, badge = null,
                 onClick = onHigherLower,
             )
             Spacer(Modifier.height(Space.m))
             ModeCard(
-                title = s.archive, subtitle = s.archiveSub, icon = Icons.Rounded.History, primary = false, badge = null,
+                title = s.archive, subtitle = s.archiveSub, tint = Color(0xFFFFC72C), index = 5, icon = Icons.Rounded.History, primary = false, badge = null,
                 onClick = onArchive,
             )
             Spacer(Modifier.height(Space.xl))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.m)) {
+            Row(Modifier.fillMaxWidth().entrance(6), horizontalArrangement = Arrangement.spacedBy(Space.m)) {
                 SmallTile(Icons.Rounded.BarChart, s.stats, Modifier.weight(1f), onStats)
                 SmallTile(Icons.Rounded.EmojiEvents, s.achievements, Modifier.weight(1f), onAchievements)
             }
@@ -149,13 +178,14 @@ fun HomeScreen(
 }
 
 @Composable
-private fun ModeCard(title: String, subtitle: String, icon: ImageVector, primary: Boolean, badge: String?, onClick: () -> Unit) {
+private fun ModeCard(title: String, subtitle: String, icon: ImageVector, primary: Boolean, badge: String?, tint: Color = Color.Unspecified, index: Int = 0, onClick: () -> Unit) {
     val c = nb
     val shape = RoundedCornerShape(Space.rPanel)
     val bg = if (primary) Brush.linearGradient(listOf(c.accent, c.accent.copy(alpha = 0.82f))) else Brush.linearGradient(listOf(c.surface1, c.surface1))
     val fg = if (primary) c.onAccent else c.text1
     Row(
         Modifier
+            .entrance(index)
             .fillMaxWidth()
             .heightIn(min = if (primary) 104.dp else 84.dp)
             .then(
@@ -170,9 +200,11 @@ private fun ModeCard(title: String, subtitle: String, icon: ImageVector, primary
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            Modifier.size(52.dp).clip(CircleShape).background(if (primary) Color(0x26000000) else c.surface2),
+            Modifier.size(52.dp).clip(CircleShape)
+                .background(if (primary || tint == Color.Unspecified) Color(0x26000000) else tint.copy(alpha = 0.18f))
+                .then(if (!primary && tint != Color.Unspecified) Modifier.border(1.dp, tint.copy(alpha = 0.45f), CircleShape) else Modifier),
             contentAlignment = Alignment.Center,
-        ) { Icon(icon, null, tint = fg, modifier = Modifier.size(26.dp)) }
+        ) { Icon(icon, null, tint = if (primary || tint == Color.Unspecified) fg else tint, modifier = Modifier.size(26.dp)) }
         Spacer(Modifier.width(Space.l))
         Column(Modifier.weight(1f)) {
             Text(title, style = if (primary) Type.h2 else Type.title, color = fg)
@@ -208,4 +240,34 @@ private fun RoundIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
         Modifier.size(48.dp).clip(CircleShape).background(c.surface1).border(1.dp, c.border, CircleShape).pressable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) { Icon(icon, label, tint = c.text1) }
+}
+
+/** Cards slide up and fade in one after another when the home screen opens. */
+@Composable
+private fun Modifier.entrance(index: Int): Modifier {
+    val a = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(60L * index)
+        a.animateTo(1f, tween(420, easing = FastOutSlowInEasing))
+    }
+    return this.graphicsLayer {
+        alpha = a.value
+        translationY = (1f - a.value) * 28.dp.toPx()
+    }
+}
+
+@Composable
+private fun StatChip(icon: ImageVector, tint: Color, value: String, label: String) {
+    val c = nb
+    Row(
+        Modifier.clip(RoundedCornerShape(50)).background(c.surface1).border(1.dp, c.border, RoundedCornerShape(50))
+            .padding(horizontal = Space.m, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, null, tint = tint, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(value, style = Type.bodyStrong, color = c.text1)
+        Spacer(Modifier.width(4.dp))
+        Text(label, style = Type.label.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Normal), color = c.text2)
+    }
 }

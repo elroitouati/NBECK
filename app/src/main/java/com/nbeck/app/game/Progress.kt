@@ -93,6 +93,14 @@ enum class Achievement(val target: Int = 1) {
     CHAIN_FIRST,
     CHAIN_PERFECT,
     CHAIN_STREAK_5(5),
+    STREAK_14(14),
+    DAILY_WINS_10(10),
+    DAILY_WINS_50(50),
+    FREE_WINS_100(100),
+    HISTORIAN_30(30),
+    CHAIN_WINS_10(10),
+    EARLY_BIRD,
+    ALL_POSITIONS(3),
 }
 
 @Serializable
@@ -105,6 +113,10 @@ data class AchievementState(
     val archiveFinished: Int = 0,
     /** Wins where the secret player isn't from the USA. */
     val internationalWins: Int = 0,
+    /** Positions (G/F/C) of secret players you've beaten. */
+    val positionsWon: Set<String> = emptySet(),
+    /** Players Chain rounds won. */
+    val chainWins: Int = 0,
 ) {
     fun isUnlocked(a: Achievement) = a.name in unlocked
 
@@ -118,6 +130,12 @@ data class AchievementState(
         Achievement.FREE_WINS_25 -> stats.free.wins
         Achievement.HISTORIAN -> archiveFinished
         Achievement.INTERNATIONAL_10 -> internationalWins
+        Achievement.STREAK_14 -> stats.daily.maxStreak
+        Achievement.DAILY_WINS_10, Achievement.DAILY_WINS_50 -> stats.daily.wins
+        Achievement.FREE_WINS_100 -> stats.free.wins
+        Achievement.HISTORIAN_30 -> archiveFinished
+        Achievement.CHAIN_WINS_10 -> chainWins
+        Achievement.ALL_POSITIONS -> positionsWon.size
         else -> if (isUnlocked(a)) 1 else 0
     }.coerceAtMost(a.target)
 }
@@ -157,6 +175,7 @@ object Achievements {
         if (game != null && game.won && game.answer?.country != null && game.answer.country != "USA") {
             state = state.copy(internationalWins = state.internationalWins + 1)
         }
+        if (game != null && game.won && game.answer != null) state = state.copy(positionsWon = state.positionsWon + game.answer.position)
         val earned = mutableListOf<Achievement>()
         fun check(a: Achievement, cond: Boolean) {
             if (cond && !state.isUnlocked(a)) earned += a
@@ -174,6 +193,12 @@ object Achievements {
         check(Achievement.FREE_WINS_25, stats.free.wins >= 25)
         check(Achievement.HISTORIAN, state.archiveFinished >= Achievement.HISTORIAN.target)
         check(Achievement.INTERNATIONAL_10, state.internationalWins >= Achievement.INTERNATIONAL_10.target)
+        check(Achievement.STREAK_14, stats.daily.maxStreak >= 14)
+        check(Achievement.DAILY_WINS_10, stats.daily.wins >= 10)
+        check(Achievement.DAILY_WINS_50, stats.daily.wins >= 50)
+        check(Achievement.FREE_WINS_100, stats.free.wins >= 100)
+        check(Achievement.HISTORIAN_30, state.archiveFinished >= 30)
+        check(Achievement.ALL_POSITIONS, state.positionsWon.containsAll(listOf("G", "F", "C")))
         if (game != null && game.won) {
             val n = game.results.size
             check(Achievement.FIRST_TRY, n == 1)
@@ -183,6 +208,7 @@ object Achievements {
             check(Achievement.SECOND_TRY, n == 2)
             check(Achievement.HOT_START, n > 1 && game.results.first().cells.count { it.mark == Mark.GREEN } >= 5)
             check(Achievement.NIGHT_OWL, game.endedAt.hour < 5)
+            check(Achievement.EARLY_BIRD, game.endedAt.hour in 5..7)
             val a = game.answer
             if (a != null) {
                 check(Achievement.BLUE_WHITE, a.country == "Israel")
@@ -199,8 +225,10 @@ object Achievements {
 }
 
 /** Players Chain achievements, checked when a round ends. */
-fun Achievements.evaluateChain(s: AchievementState, stats: ChainStats, round: ChainRound, today: LocalDate): Pair<AchievementState, List<Achievement>> {
+fun Achievements.evaluateChain(s0: AchievementState, stats: ChainStats, round: ChainRound, today: LocalDate): Pair<AchievementState, List<Achievement>> {
+    val s = if (round.won) s0.copy(chainWins = s0.chainWins + 1) else s0
     val earned = buildList {
+        if (s.chainWins >= 10 && !s.isUnlocked(Achievement.CHAIN_WINS_10)) add(Achievement.CHAIN_WINS_10)
         if (round.won && !s.isUnlocked(Achievement.CHAIN_FIRST)) add(Achievement.CHAIN_FIRST)
         if (round.won && round.misses.isEmpty() && round.between <= round.puzzle.minBetween && !s.isUnlocked(Achievement.CHAIN_PERFECT)) add(Achievement.CHAIN_PERFECT)
         if (stats.maxStreak >= 5 && !s.isUnlocked(Achievement.CHAIN_STREAK_5)) add(Achievement.CHAIN_STREAK_5)

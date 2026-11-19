@@ -65,7 +65,7 @@ fun ArenaBackground(modifier: Modifier = Modifier, parquet: Boolean = true, cont
     val c = nb
     Box(modifier.fillMaxSize().background(c.bg)) {
         Canvas(Modifier.fillMaxSize()) {
-            if (parquet) {
+            if (parquet && c.showParquet) {
                 val plank = 22.dp.toPx()
                 var y = size.height * 0.45f
                 var i = 0
@@ -103,7 +103,7 @@ fun Scoreboard(modifier: Modifier = Modifier, content: @Composable RowScope.() -
     Row(
         modifier
             .clip(RoundedCornerShape(Space.rControl))
-            .background(Brush.verticalGradient(listOf(Color(0xFF10131A), c.board)))
+            .background(Brush.verticalGradient(listOf(androidx.compose.ui.graphics.lerp(c.board, Color.White, 0.04f), c.board)))
             .border(1.dp, c.boardEdge, RoundedCornerShape(Space.rControl))
             .padding(horizontal = Space.m, vertical = Space.s),
         verticalAlignment = Alignment.CenterVertically,

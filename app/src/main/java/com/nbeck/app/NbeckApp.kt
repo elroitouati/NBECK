@@ -35,7 +35,7 @@ class NbeckApp : Application(), ImageLoaderFactory {
         appScope.launch { players.load() }
         runCatching { RefreshWorker.schedule(this) }
         runCatching { com.nbeck.app.data.Updates.schedule(this) }
-        runCatching { com.nbeck.app.data.ReminderWorker.schedule(this) }
+        runCatching { com.nbeck.app.data.Reminders.schedule(this) }
     }
 
     /** Headshots are cached on disk so they keep working offline. */

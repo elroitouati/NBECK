@@ -39,7 +39,14 @@ data class LatestRelease(
     val apk: String,
     val notesHe: List<String> = emptyList(),
     val notesEn: List<String> = emptyList(),
-)
+    val notesFr: List<String> = emptyList(),
+) {
+    fun notesFor(l: Language) = when (l) {
+        Language.HE -> notesHe
+        Language.FR -> notesFr.ifEmpty { notesEn }
+        Language.EN -> notesEn
+    }
+}
 
 /**
  * New-version check. There is no server: each release publishes the APK and release/latest.json to
@@ -85,21 +92,21 @@ object Updates {
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) return false
-        val he = language == Language.HE
+        val (channel, title, tapText) = when (language) {
+            Language.HE -> Triple("עדכוני גרסה", "גרסה חדשה של DNBA: ${r.versionName}", "לחץ כדי לעדכן")
+            Language.FR -> Triple("Mises à jour", "Nouvelle version de DNBA : ${r.versionName}", "Touche pour mettre à jour")
+            Language.EN -> Triple("App updates", "New DNBA version: ${r.versionName}", "Tap to update")
+        }
         val nm = context.getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(
-            NotificationChannel(CHANNEL, if (he) "עדכוני גרסה" else "App updates", NotificationManager.IMPORTANCE_DEFAULT)
-        )
+        nm.createNotificationChannel(NotificationChannel(CHANNEL, channel, NotificationManager.IMPORTANCE_DEFAULT))
         val tap = PendingIntent.getActivity(context, 0, openAppIntent(context), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        val notes = (if (he) r.notesHe else r.notesEn).joinToString("\n") { "• $it" }
+        val notes = r.notesFor(language).joinToString("\n") { "• $it" }
         val n = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(0xFFFF7A1A.toInt())
-            .setContentTitle(if (he) "גרסה חדשה של DNBA: ${r.versionName}" else "New DNBA version: ${r.versionName}")
-            .setContentText(if (he) "לחץ כדי לעדכן" else "Tap to update")
-            .setStyle(NotificationCompat.BigTextStyle().bigText(
-                (if (he) "לחץ כדי לעדכן\n" else "Tap to update\n") + notes
-            ))
+            .setContentTitle(title)
+            .setContentText(tapText)
+            .setStyle(NotificationCompat.BigTextStyle().bigText("$tapText\n$notes"))
             .setContentIntent(tap)
             .setAutoCancel(true)
             .build()

@@ -154,7 +154,7 @@ class EspnPositionTest {
 class ReminderTimesTest {
     private fun at(y: Int, m: Int, d: Int, h: Int, min: Int = 0) = java.time.LocalDateTime.of(y, m, d, h, min)
     @Test fun schedule() {
-        val next = com.nbeck.app.data.ReminderWorker::next
+        val next = com.nbeck.app.data.Reminders::next
         // 2026-11-15 is a Sunday.
         assertEquals(at(2026, 11, 15, 15), next(at(2026, 11, 15, 9)))      // Sunday 15:00
         assertEquals(at(2026, 11, 16, 15), next(at(2026, 11, 15, 15)))     // after it -> Monday 15:00

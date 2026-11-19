@@ -56,6 +56,8 @@ data class NbColors(
     val boardEdge: Color = Color(0xFF232833),
     val led: Color = Color(0xFFFFB021),
     val ledDim: Color = Color(0x22FFB021),
+    /** Parquet floor on the home screen (custom themes can turn it off). */
+    val showParquet: Boolean = true,
 ) {
     fun tile(m: Mark) = when (m) { Mark.GREEN -> green; Mark.YELLOW -> yellow; Mark.GRAY -> gray }
     fun onTile(m: Mark) = when (m) { Mark.GREEN -> onGreen; Mark.YELLOW -> onYellow; Mark.GRAY -> onGray }
@@ -166,14 +168,35 @@ private fun mix(a: Color, b: Color, t: Float) = Color(
 fun customColors(t: com.nbeck.app.data.CustomTheme): NbColors {
     val bg = Color(t.bg); val surface = Color(t.surface); val accent = Color(t.accent); val led = Color(t.led)
     val base = if (bg.lum() < 0.5f) DarkColors else LightColors
+    val text1 = t.text1?.let(::Color) ?: base.text1
+    fun on(c: Color) = if (c.lum() > 0.55f) Color(0xFF14181D) else Color(0xFFF7F7F7)
+    val green = t.green?.let(::Color) ?: base.green
+    val yellow = t.yellow?.let(::Color) ?: base.yellow
+    val gray = t.gray?.let(::Color) ?: base.gray
+    val border = t.border?.let(::Color)
+    val wood = t.wood?.let(::Color)
     return base.copy(
         bg = bg,
         surface1 = surface,
-        surface2 = mix(surface, base.text1, 0.07f),
+        surface2 = mix(surface, text1, 0.07f),
+        border = border?.copy(alpha = 0.55f) ?: base.border,
+        borderStrong = border ?: base.borderStrong,
+        text1 = text1,
+        text2 = t.text2?.let(::Color) ?: text1.copy(alpha = base.text2.alpha),
+        text3 = text1.copy(alpha = base.text3.alpha),
         accent = accent,
-        onAccent = if (accent.lum() > 0.55f) Color(0xFF14181D) else Color(0xFFF7F7F7),
+        onAccent = t.onAccent?.let(::Color) ?: on(accent),
+        green = green, onGreen = if (t.green == null) base.onGreen else on(green),
+        yellow = yellow, onYellow = if (t.yellow == null) base.onYellow else on(yellow),
+        gray = gray, onGray = if (t.gray == null) base.onGray else on(gray),
+        spotlight = t.glow?.let { Color(it).copy(alpha = if (base.isDark) 0.28f else 0.45f) } ?: base.spotlight,
+        woodA = wood ?: base.woodA,
+        woodB = wood?.let { mix(it, Color.Black, 0.18f) } ?: base.woodB,
+        board = t.board?.let(::Color) ?: base.board,
+        boardEdge = t.board?.let { mix(Color(it), Color.White, 0.12f) } ?: base.boardEdge,
         led = led,
         ledDim = led.copy(alpha = 0.13f),
+        showParquet = t.parquet,
     )
 }
 

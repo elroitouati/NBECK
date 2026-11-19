@@ -7,6 +7,7 @@ import com.nbeck.app.game.Category
 
 /** All UI copy, Hebrew and English. Player/team names and abbreviations stay English in both. */
 interface Strings {
+    val lang: com.nbeck.app.data.Language
     val tagline: String
     val daily: String
     val dailySub: String
@@ -135,6 +136,30 @@ interface Strings {
     val installFailed: String
     val retry: String
     val skip: String
+    val homeStreak: String
+    val homeWins: String
+    val homeBadges: String
+    val tGroupAtmosphere: String
+    val tGlow: String
+    val tParquet: String
+    val tWood: String
+    val tGroupCards: String
+    val tBorder: String
+    val tGroupText: String
+    val tText1: String
+    val tText2: String
+    val tGroupButtons: String
+    val tOnAccent: String
+    val tGroupBoard: String
+    val tBoard: String
+    val tGroupTiles: String
+    val tGreen: String
+    val tYellow: String
+    val tGray: String
+    val tPresets: String
+    val tAuto: String
+    val tUse: String
+    val tReset: String
     val themeCustom: String
     val themeCustomShort: String
     val themeEditor: String
@@ -165,6 +190,7 @@ interface Strings {
 }
 
 object He : Strings {
+    override val lang = com.nbeck.app.data.Language.HE
     override val tagline = "נחש את שחקן ה-NBA"
     override val daily = "האתגר היומי"
     override val dailySub = "שחקן אחד לכל החברים, פעם ביום"
@@ -250,6 +276,14 @@ object He : Strings {
         Achievement.CHAIN_FIRST -> "חוליה ראשונה"
         Achievement.CHAIN_PERFECT -> "שרשרת מושלמת"
         Achievement.CHAIN_STREAK_5 -> "מחבר סדרתי"
+        Achievement.STREAK_14 -> "רצף 14"
+        Achievement.DAILY_WINS_10 -> "קבוע ביומי"
+        Achievement.DAILY_WINS_50 -> "אגדת היומי"
+        Achievement.FREE_WINS_100 -> "מכונה"
+        Achievement.HISTORIAN_30 -> "ארכיון מלא"
+        Achievement.CHAIN_WINS_10 -> "מאסטר שרשרות"
+        Achievement.EARLY_BIRD -> "ציפור מוקדמת"
+        Achievement.ALL_POSITIONS -> "כל העמדות"
     }
     override fun achievementDesc(a: Achievement) = when (a) {
         Achievement.FIRST_WIN -> "נצח במשחק הראשון שלך"
@@ -280,6 +314,14 @@ object He : Strings {
         Achievement.CHAIN_FIRST -> "נצח בשרשרת שחקנים"
         Achievement.CHAIN_PERFECT -> "נצח בשרשרת במינימום שחקנים ובלי אף טעות"
         Achievement.CHAIN_STREAK_5 -> "5 ניצחונות ברצף בשרשרת שחקנים"
+        Achievement.STREAK_14 -> "14 ימים ברצף של ניצחון ביומי"
+        Achievement.DAILY_WINS_10 -> "10 ניצחונות באתגר היומי"
+        Achievement.DAILY_WINS_50 -> "50 ניצחונות באתגר היומי"
+        Achievement.FREE_WINS_100 -> "100 ניצחונות במשחק החופשי"
+        Achievement.HISTORIAN_30 -> "סיים 30 אתגרים קודמים"
+        Achievement.CHAIN_WINS_10 -> "10 ניצחונות בשרשרת שחקנים"
+        Achievement.EARLY_BIRD -> "נצח בין 5 ל-8 בבוקר"
+        Achievement.ALL_POSITIONS -> "נצח שחקן סודי בכל עמדה: G, F ו-C"
     }
     override val howToTitle = "איך משחקים"
     override val howToIntro = "יש לך 8 ניחושים למצוא את שחקן ה-NBA הסודי. הקלד שם, בחר מהרשימה, וכל ניחוש מראה כמה קרוב היית."
@@ -360,6 +402,30 @@ object He : Strings {
     override val installFailed = "ההורדה נכשלה. בדוק את החיבור ונסה שוב"
     override val retry = "נסה שוב"
     override val skip = "דלג"
+    override val homeStreak = "רצף"
+    override val homeWins = "ניצחונות"
+    override val homeBadges = "הישגים"
+    override val tGroupAtmosphere = "רקע ואווירה"
+    override val tGlow = "תאורת זרקור"
+    override val tParquet = "פרקט בתחתית המסך"
+    override val tWood = "צבע הפרקט"
+    override val tGroupCards = "כרטיסים"
+    override val tBorder = "מסגרת"
+    override val tGroupText = "טקסט"
+    override val tText1 = "טקסט ראשי"
+    override val tText2 = "טקסט משני"
+    override val tGroupButtons = "כפתורים"
+    override val tOnAccent = "טקסט על כפתור"
+    override val tGroupBoard = "לוח תוצאות"
+    override val tBoard = "רקע הלוח"
+    override val tGroupTiles = "משבצות המשחק"
+    override val tGreen = "מדויק"
+    override val tYellow = "קרוב"
+    override val tGray = "רחוק"
+    override val tPresets = "ערכות מוכנות"
+    override val tAuto = "אוטומטי"
+    override val tUse = "בחר את הצבע"
+    override val tReset = "איפוס לברירת המחדל"
     override val themeCustom = "מותאם אישית"
     override val themeCustomShort = "מותאם"
     override val themeEditor = "העיצוב שלי"
@@ -369,7 +435,7 @@ object He : Strings {
     override val tAccent = "צבע ראשי (כפתורים)"
     override val tLed = "לוח התוצאות"
     override val saveTheme = "שמור את העיצוב"
-    override val themeHint = "בחר צבעים – כל המסך מתעדכן בזמן אמת. העיצוב נשמר בשם \"מותאם אישית\"."
+    override val themeHint = "כל המסך מתעדכן בזמן אמת. לחץ על כל צבע כדי לבחור מגלגל הצבעים או מהפלטה. העיצוב נשמר בשם \"מותאם אישית\"."
     override val previewCard = "ככה ייראה כרטיס"
     override val dailyReminder = "תזכורת לאתגר היומי"
     override val hl = "פחות או יותר"
@@ -400,6 +466,7 @@ object He : Strings {
 }
 
 object En : Strings {
+    override val lang = com.nbeck.app.data.Language.EN
     override val tagline = "Guess the NBA player"
     override val daily = "Daily challenge"
     override val dailySub = "One player for all your friends, once a day"
@@ -485,6 +552,14 @@ object En : Strings {
         Achievement.CHAIN_FIRST -> "First link"
         Achievement.CHAIN_PERFECT -> "Perfect chain"
         Achievement.CHAIN_STREAK_5 -> "Serial connector"
+        Achievement.STREAK_14 -> "14-day streak"
+        Achievement.DAILY_WINS_10 -> "Daily regular"
+        Achievement.DAILY_WINS_50 -> "Daily legend"
+        Achievement.FREE_WINS_100 -> "Machine"
+        Achievement.HISTORIAN_30 -> "Full archive"
+        Achievement.CHAIN_WINS_10 -> "Chain master"
+        Achievement.EARLY_BIRD -> "Early bird"
+        Achievement.ALL_POSITIONS -> "Every position"
     }
     override fun achievementDesc(a: Achievement) = when (a) {
         Achievement.FIRST_WIN -> "Win your first game"
@@ -515,6 +590,14 @@ object En : Strings {
         Achievement.CHAIN_FIRST -> "Win a Players Chain round"
         Achievement.CHAIN_PERFECT -> "Win a chain with the fewest players and no misses"
         Achievement.CHAIN_STREAK_5 -> "Win 5 Players Chain rounds in a row"
+        Achievement.STREAK_14 -> "Win the daily 14 days in a row"
+        Achievement.DAILY_WINS_10 -> "Win 10 daily challenges"
+        Achievement.DAILY_WINS_50 -> "Win 50 daily challenges"
+        Achievement.FREE_WINS_100 -> "Win 100 free-play games"
+        Achievement.HISTORIAN_30 -> "Finish 30 past challenges"
+        Achievement.CHAIN_WINS_10 -> "Win 10 Players Chain rounds"
+        Achievement.EARLY_BIRD -> "Win between 5 and 8 a.m."
+        Achievement.ALL_POSITIONS -> "Beat a secret player at every position: G, F and C"
     }
     override val howToTitle = "How to play"
     override val howToIntro = "You have 8 guesses to find the secret NBA player. Type a name, pick from the list, and each guess shows how close you are."
@@ -595,6 +678,30 @@ object En : Strings {
     override val installFailed = "Download failed. Check your connection and try again"
     override val retry = "Try again"
     override val skip = "Skip"
+    override val homeStreak = "streak"
+    override val homeWins = "wins"
+    override val homeBadges = "badges"
+    override val tGroupAtmosphere = "Background & mood"
+    override val tGlow = "Spotlight glow"
+    override val tParquet = "Parquet floor"
+    override val tWood = "Parquet color"
+    override val tGroupCards = "Cards"
+    override val tBorder = "Outline"
+    override val tGroupText = "Text"
+    override val tText1 = "Main text"
+    override val tText2 = "Secondary text"
+    override val tGroupButtons = "Buttons"
+    override val tOnAccent = "Button text"
+    override val tGroupBoard = "Scoreboard"
+    override val tBoard = "Board background"
+    override val tGroupTiles = "Game tiles"
+    override val tGreen = "Exact"
+    override val tYellow = "Close"
+    override val tGray = "Far"
+    override val tPresets = "Presets"
+    override val tAuto = "Automatic"
+    override val tUse = "Use this color"
+    override val tReset = "Reset to default"
     override val themeCustom = "Custom"
     override val themeCustomShort = "Custom"
     override val themeEditor = "My theme"
@@ -604,7 +711,7 @@ object En : Strings {
     override val tAccent = "Accent (buttons)"
     override val tLed = "Scoreboard"
     override val saveTheme = "Save theme"
-    override val themeHint = "Pick colors – the whole screen updates live. Saved as \"Custom\"."
+    override val themeHint = "The whole screen updates live. Tap any color to pick from the wheel or the palette. Saved as \"Custom\"."
     override val previewCard = "This is how a card looks"
     override val dailyReminder = "Daily challenge reminder"
     override val hl = "Higher or Lower"
@@ -624,6 +731,10 @@ object En : Strings {
     override fun chainWinSub(between: Int, attempts: Int) = "$between in between · $attempts/5 attempts"
 }
 
-fun stringsFor(l: Language): Strings = if (l == Language.HE) He else En
+fun stringsFor(l: Language): Strings = when (l) {
+    Language.HE -> He
+    Language.EN -> En
+    Language.FR -> Fr
+}
 
 val LocalStrings = staticCompositionLocalOf<Strings> { He }

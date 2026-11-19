@@ -192,7 +192,7 @@ class ScreenshotTest {
     }
     @Test fun chain_progress_he() { seedChain(); shot("17_chain_he", realWaitMs = 2500) { com.nbeck.app.ui.screens.ChainScreen({}) } }
 
-    @Test fun home_he_dark() = shot("01_home_he_dark") { HomeScreen({}, {}, {}, {}, {}, {}) }
+    @Test fun home_he_dark() = shot("01_home_he_dark", realWaitMs = 1200) { HomeScreen({}, {}, {}, {}, {}, {}) }
     @Test fun home_en_light() = shot("02_home_en_light", Language.EN, ThemeMode.LIGHT) { HomeScreen({}, {}, {}, {}, {}, {}) }
     @Test fun howto_he() = shot("03_howto_he") { HowToScreen({}, {}) }
     @Test fun game_empty_he() { seedDaily(emptyList()); shot("04_game_empty_he") { GameScreen(Mode.DAILY, {}, {}) } }
@@ -204,6 +204,13 @@ class ScreenshotTest {
     @Test fun archive_he() {
         seedDaily(listOf("LeBron James", "Nikola Jokic"), finished = true, won = true)
         shot("11_archive_he") { com.nbeck.app.ui.screens.ArchiveScreen({}, {}) }
+    }
+    @Test fun home_fr() = shot("23_home_fr", Language.FR, realWaitMs = 1200) { HomeScreen({}, {}, {}, {}, {}, {}) }
+    @Test fun settings_fr() = shot("24_settings_fr", Language.FR) { SettingsScreen({}) }
+    @Test fun game_progress_fr() { seedDaily(someGuesses); shot("25_game_progress_fr", Language.FR) { GameScreen(Mode.DAILY, {}, {}) } }
+    @Test fun achievements_fr() = shot("26_achievements_fr", Language.FR) { AchievementsScreen({}) }
+    @Test fun color_picker_he() = shot("27_color_picker_he") {
+        com.nbeck.app.ui.components.ColorPickerPanel("צבע ראשי", androidx.compose.ui.graphics.Color(0xFFFF7A1A), "בחר את הצבע", "אוטומטי", {}, {})
     }
     @Test fun settings_he() = shot("10_settings_he") { SettingsScreen({}) }
 }

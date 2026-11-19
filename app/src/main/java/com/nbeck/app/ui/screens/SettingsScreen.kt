@@ -66,8 +66,8 @@ fun SettingsScreen(onBack: () -> Unit, onVersions: () -> Unit = {}, onCustomThem
             TopBar(s.settings, onBack)
             Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal = Space.gutter)) {
                 Section(s.language)
-                Segmented(listOf("עברית", "English"), if (settings.language == Language.HE) 0 else 1) { i ->
-                    update { it.copy(language = if (i == 0) Language.HE else Language.EN) }
+                Segmented(listOf("עברית", "English", "Français"), settings.language.ordinal) { i ->
+                    update { it.copy(language = Language.entries[i]) }
                 }
                 Section(s.theme)
                 // Follows the phone's dark/light setting until the player picks a theme here.

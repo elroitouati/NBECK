@@ -1,19 +1,29 @@
 {
- "versionCode": 21,
- "versionName": "2.3.0",
+ "versionCode": 22,
+ "versionName": "2.4.0",
  "apk": "https://raw.githubusercontent.com/elroitouati/NBECK/HEAD/release/DNBA.apk",
  "notesHe": [
-  "פחות או יותר: הנתון של השחקן העליון נשאר גלוי, שחקנים שמתאימים לקטגוריה, בלי אפסים, ו\"שווה\" מול 100%",
-  "קטגוריה מוצגת בקיצור (RPG) והפירוש מתחתיה",
-  "עיצוב מותאם אישית: בוחרים רקע, כרטיסים, צבע ראשי ולוח תוצאות",
-  "תזכורת לאתגר היומי: כל יום ב-15:00, שישי ב-12:00, שבת ב-22:00",
-  "התראה על גרסה חדשה מגיעה תוך כרבע שעה מהפרסום"
+  "מסך הבית חי יותר: כרטיסים שנכנסים באנימציה, לוגו שזז, אייקונים צבעוניים ושורת רצף/ניצחונות/הישגים",
+  "עיצוב מותאם אישית כמעט לכל דבר: רקע, זרקור, פרקט, כרטיסים, מסגרות, טקסט, כפתורים, לוח תוצאות ומשבצות",
+  "גלגל צבעים, פלטה של 54 צבעים, קוד צבע וערכות מוכנות",
+  "8 הישגים חדשים",
+  "התזכורת היומית מגיעה בשעה המדויקת גם בלי לפתוח את האפליקציה, ולא נשלחת אם כבר שיחקת היום",
+  "שפה חדשה: צרפתית"
  ],
  "notesEn": [
-  "Higher or Lower: the top player's number stays visible, category-relevant players, no zeros, and EQUAL against 100%",
-  "Category shown as an abbreviation (RPG) with its meaning below",
-  "Custom theme: pick background, cards, accent and scoreboard colors",
-  "Daily challenge reminder: 15:00 every day, Friday 12:00, Saturday 22:00",
-  "New-version notification within about 15 minutes of a release"
+  "A livelier home screen: animated cards, a moving logo, colorful icons and a streak/wins/badges strip",
+  "Customize almost everything: background, spotlight, parquet, cards, outlines, text, buttons, scoreboard and tiles",
+  "Color wheel, a 54-color palette, hex codes and ready-made presets",
+  "8 new achievements",
+  "The daily reminder arrives on time even if you don't open the app, and skips days you already played",
+  "New language: French"
+ ],
+ "notesFr": [
+  "Un accueil plus vivant : cartes animées, logo qui bouge, icônes colorées et bandeau série/victoires/succès",
+  "Personnalise presque tout : fond, projecteur, parquet, cartes, contours, texte, boutons, tableau et cases",
+  "Roue chromatique, palette de 54 couleurs, codes hex et thèmes prêts",
+  "8 nouveaux succès",
+  "Le rappel quotidien arrive à l'heure même sans ouvrir l'appli, et pas si tu as déjà joué",
+  "Nouvelle langue : le français"
  ]
 }

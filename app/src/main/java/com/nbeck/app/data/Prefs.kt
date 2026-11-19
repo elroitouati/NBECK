@@ -16,16 +16,36 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.time.LocalDate
 
-enum class Language { HE, EN }
+enum class Language { HE, EN, FR }
 enum class ThemeMode { SYSTEM, DARK, LIGHT, CUSTOM }
 
-/** The one custom theme (colors as ARGB). Text colors follow the background automatically. */
+/**
+ * The one custom theme (colors as ARGB). The four base colors are always set; every other color is
+ * optional — null means "automatic" (derived so text stays readable).
+ */
 @Serializable
 data class CustomTheme(
     val bg: Long = 0xFF0B0D12,
     val surface: Long = 0xFF141821,
     val accent: Long = 0xFFFF7A1A,
     val led: Long = 0xFFFFB021,
+    /** Spotlight glow at the top of every screen. */
+    val glow: Long? = null,
+    /** Parquet floor at the bottom of the home screen. */
+    val parquet: Boolean = true,
+    val wood: Long? = null,
+    /** Card outlines. */
+    val border: Long? = null,
+    val text1: Long? = null,
+    val text2: Long? = null,
+    /** Text/icons on accent buttons. */
+    val onAccent: Long? = null,
+    /** The scoreboard panels behind the LED digits. */
+    val board: Long? = null,
+    /** Grading tiles: exact / close / far. */
+    val green: Long? = null,
+    val yellow: Long? = null,
+    val gray: Long? = null,
 )
 
 @Serializable

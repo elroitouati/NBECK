@@ -7,10 +7,45 @@ data class Release(
     val date: String,
     val he: List<String>,
     val en: List<String>,
-)
+    /** French notes; older releases fall back to English. */
+    val fr: List<String> = emptyList(),
+) {
+    fun notesFor(l: Language) = when (l) {
+        Language.HE -> he
+        Language.FR -> fr.ifEmpty { en }
+        Language.EN -> en
+    }
+}
 
 object Changelog {
     val releases: List<Release> = listOf(
+        Release(
+            22, "2.4.0", "2026-11-19",
+            he = listOf(
+                "מסך הבית חי יותר: כרטיסים שנכנסים באנימציה, לוגו שזז, אייקונים צבעוניים ושורת רצף/ניצחונות/הישגים",
+                "עיצוב מותאם אישית כמעט לכל דבר: רקע, זרקור, פרקט, כרטיסים, מסגרות, טקסט, כפתורים, לוח תוצאות ומשבצות",
+                "גלגל צבעים, פלטה של 54 צבעים, קוד צבע וערכות מוכנות",
+                "8 הישגים חדשים",
+                "התזכורת היומית מגיעה בשעה המדויקת גם בלי לפתוח את האפליקציה, ולא נשלחת אם כבר שיחקת היום",
+                "שפה חדשה: צרפתית",
+            ),
+            en = listOf(
+                "A livelier home screen: animated cards, a moving logo, colorful icons and a streak/wins/badges strip",
+                "Customize almost everything: background, spotlight, parquet, cards, outlines, text, buttons, scoreboard and tiles",
+                "Color wheel, a 54-color palette, hex codes and ready-made presets",
+                "8 new achievements",
+                "The daily reminder arrives on time even if you don't open the app, and skips days you already played",
+                "New language: French",
+            ),
+            fr = listOf(
+                "Un accueil plus vivant : cartes animées, logo qui bouge, icônes colorées et bandeau série/victoires/succès",
+                "Personnalise presque tout : fond, projecteur, parquet, cartes, contours, texte, boutons, tableau et cases",
+                "Roue chromatique, palette de 54 couleurs, codes hex et thèmes prêts",
+                "8 nouveaux succès",
+                "Le rappel quotidien arrive à l'heure même sans ouvrir l'appli, et pas si tu as déjà joué",
+                "Nouvelle langue : le français",
+            ),
+        ),
         Release(
             21, "2.3.0", "2026-11-15",
             he = listOf(
